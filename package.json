@@ -1,0 +1,13 @@
+{
+  "name": "starter-init",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Initializer that scaffolds a project with a theme switcher and a clean notification system.",
+  "bin": {
+    "init-starter": "init.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
