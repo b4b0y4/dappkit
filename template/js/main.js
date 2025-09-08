@@ -29,7 +29,12 @@ document.addEventListener("DOMContentLoaded", () => {
   wallet.onConnect((data) => {
     const account = data.accounts[0];
     const shortAccount = `${account.slice(0, 6)}...${account.slice(-4)}`;
-    NotificationSystem.show(`Connected to ${shortAccount}`, "success");
+    const providerName = wallet.getLastWallet();
+
+    NotificationSystem.show(
+      `Connected to ${providerName} with account ${shortAccount}`,
+      "success",
+    );
   });
 
   wallet.onDisconnect(() => {
