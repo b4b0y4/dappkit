@@ -6,6 +6,7 @@
     <title>Starter Init</title>
     <link rel="stylesheet" href="./assets/css/theme.css" />
     <link rel="stylesheet" href="./assets/css/notifications.css" />
+    <link rel="stylesheet" href="./assets/css/connect.css" />
     <style>
       /* Demo layout (safe to remove) */
       :root {
@@ -52,56 +53,73 @@
       .spacer {
         flex: 1;
       }
-      #theme-btn {
-        position: fixed;
-        top: 16px;
-        right: 16px;
-      }
     </style>
   </head>
   <body>
-    <!-- Theme Button -->
-    <button id="theme-btn" aria-label="Toggle theme">
-      <svg
-        id="theme-light"
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.33"
-      >
-        <circle cx="8" cy="8" r="3.33" />
-        <path
-          d="M8 0.67v1.33M8 14v1.33M2.81 2.81l0.95 0.95M12.24 12.24l0.95 0.95M0.67 8h1.33M14 8h1.33M2.81 13.19l0.95-0.95M12.24 3.76l0.95-0.95"
-        />
-      </svg>
-      <svg
-        id="theme-dark"
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 16 16"
-        fill="currentColor"
-      >
-        <path d="M14 8.53A6 6 0 1 1 7.47 2 4.67 4.67 0 0 0 14 8.53z" />
-      </svg>
-      <svg
-        id="theme-system"
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 16 16"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.33"
-      >
-        <rect x="1.33" y="2" width="13.33" height="9.33" rx="1.33" ry="1.33" />
-        <line x1="5.33" y1="14" x2="10.67" y2="14" />
-        <line x1="8" y1="11.33" x2="8" y2="14" />
-      </svg>
-    </button>
+    <!-- Connect Widget -->
+    <div class="connect-wrapper">
+      <!-- Theme Button -->
+      <button id="theme-btn" aria-label="Toggle theme">
+        <svg
+          id="theme-light"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.33"
+        >
+          <circle cx="8" cy="8" r="3.33" />
+          <path
+            d="M8 0.67v1.33M8 14v1.33M2.81 2.81l0.95 0.95M12.24 12.24l0.95 0.95M0.67 8h1.33M14 8h1.33M2.81 13.19l0.95-0.95M12.24 3.76l0.95-0.95"
+          />
+        </svg>
+        <svg
+          id="theme-dark"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 16 16"
+          fill="currentColor"
+        >
+          <path d="M14 8.53A6 6 0 1 1 7.47 2 4.67 4.67 0 0 0 14 8.53z" />
+        </svg>
+        <svg
+          id="theme-system"
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.33"
+        >
+          <rect
+            x="1.33"
+            y="2"
+            width="13.33"
+            height="9.33"
+            rx="1.33"
+            ry="1.33"
+          />
+          <line x1="5.33" y1="14" x2="10.67" y2="14" />
+          <line x1="8" y1="11.33" x2="8" y2="14" />
+        </svg>
+      </button>
+      <div class="connect-widget">
+        <button id="connect-btn" class="connect-btn">Connect</button>
+        <div id="connect-wallet-list" class="connect-wallet-list">
+          <div class="connect-chain-list" id="connect-chain-list"></div>
+          <div id="connect-get-wallet" class="connect-get-wallet">
+            <a href="https://ethereum.org/en/wallets/" target="_blank"
+              >Get a Wallet!</a
+            >
+          </div>
+          <div id="connect-wallets" class="connect-wallets"></div>
+        </div>
+      </div>
+    </div>
 
     <!-- Notifications Container -->
     <div id="notificationContainer"></div>
