@@ -124,7 +124,7 @@ Add this to your HTML where you want the connect widget:
 import { ConnectWallet } from "./connect.js";
 
 // Initialize the wallet connect instance
-const walletConnect = new ConnectWallet();
+const wallet = new ConnectWallet();
 
 document.addEventListener("DOMContentLoaded", () => {
   const elements = {
@@ -134,17 +134,12 @@ document.addEventListener("DOMContentLoaded", () => {
     connectWallets: document.querySelector("#connect-wallets"),
   };
 
-  // Enforce existence of required elements
-  if (!elements) {
-    throw new Error("Missing required DOM elements");
-  }
-
-  walletConnect.setElements(elements);
+  wallet.setElements(elements);
 
   // Set up event listeners
   elements.connectBtn.addEventListener("click", (event) => {
     event.stopPropagation();
-    walletConnect.toggleWalletList();
+    wallet.toggleWalletList();
   });
 
   elements.connectWalletList.addEventListener("click", (event) => {
@@ -153,7 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Close wallet list when clicking outside
   document.addEventListener("click", () => {
-    walletConnect.hideWalletList();
+    wallet.hideWalletList();
   });
 
   // Set up callbacks for connection events
@@ -171,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Export for global access if needed
-window.walletConnect = walletConnect;
+window.walletConnect = wallet;
 ```
 
 #### Wallet Features
