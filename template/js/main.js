@@ -4,10 +4,27 @@ import { networkConfigs } from "./connect-config.js";
 
 const wallet = new ConnectWallet();
 
-// Build a lookup of supported chainIds
-const SUPPORTED_CHAINS = Object.values(networkConfigs)
-  .filter((net) => net.showInUI) // only those you want to allow
-  .map((net) => String(net.chainId)); // ensure string comparison
+// Convert hex or number to a decimal number
+const normalizeChainId = (chainId) => {
+  if (typeof chainId === "string" && chainId.startsWith("0x")) {
+    return parseInt(chainId, 16);
+  }
+  return Number(chainId);
+};
+
+// ✅ Build list of allowed chain IDs (only showInUI: true)
+const allowedChains = Object.values(networkConfigs)
+  .filter((cfg) => cfg.showInUI)
+  .map((cfg) => cfg.chainId);
+
+// ✅ Small utility to guard function calls
+const onlyAllowed = (chainId, fn) => {
+  const normalized = normalizeChainId(chainId);
+  if (!allowedChains.includes(normalized)) {
+    throw new Error(`Chain ${chainId} is not allowed`);
+  }
+  return fn();
+};
 
 document.addEventListener("DOMContentLoaded", () => {
   const elements = {
@@ -16,12 +33,6 @@ document.addEventListener("DOMContentLoaded", () => {
     connectWalletList: document.querySelector("#connect-wallet-list"),
     connectWallets: document.querySelector("#connect-wallets"),
   };
-
-  if (!elements.connectBtn || !elements.connectWalletList) {
-    throw new Error(
-      "Missing required DOM elements: #connect-btn or #connect-wallet-list",
-    );
-  }
 
   wallet.setElements(elements);
 
@@ -42,18 +53,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const account = data.accounts[0];
     const shortAccount = `${account.slice(0, 6)}...${account.slice(-4)}`;
     NotificationSystem.show(`Connected to ${shortAccount}`, "success");
-
-    // check network immediately
-    checkNetwork(data.chainId);
   });
 
   wallet.onDisconnect(() => {
-    NotificationSystem.show("Wallet disconnected", "danger");
+    NotificationSystem.show("Wallet disconnected", "warning");
   });
 
   wallet.onChainChange((chainId) => {
-    NotificationSystem.show(`Switched to network ${chainId}`, "info");
-    checkNetwork(chainId);
+    try {
+      onlyAllowed(chainId, () => {
+        NotificationSystem.show(`Switched to network ${chainId}`, "info");
+      });
+    } catch (err) {
+      NotificationSystem.show(err.message, "danger", { duration: 0 });
+    }
   });
 
   // Demo notification buttons
@@ -71,40 +84,3 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.walletConnect = wallet;
-
-// --- Helpers ---
-function checkNetwork(chainIds) {
-  // Normalize to array (in case we get a single ID)
-  const chainArray = Array.isArray(chainIds) ? chainIds : [chainIds];
-
-  // Convert to decimal strings (handles both hex like "0x1" and decimal like "1")
-  const chainStrs = chainArray.map((id) => {
-    const numericId =
-      typeof id === "string" && id.startsWith("0x")
-        ? parseInt(id, 16)
-        : parseInt(id, 10);
-    return String(numericId);
-  });
-
-  console.log("Normalized chain IDs:", chainStrs);
-  console.log("Supported chains:", SUPPORTED_CHAINS);
-
-  // Check if any connected chain is supported
-  const isSupported = chainStrs.some((id) => SUPPORTED_CHAINS.includes(id));
-
-  console.log("Is supported:", isSupported);
-
-  if (!isSupported) {
-    // Get supported network names from the config
-    const supportedNames = Object.values(networkConfigs)
-      .filter((net) => net.showInUI)
-      .map((net) => net.name)
-      .join(", ");
-
-    NotificationSystem.show(
-      `Unsupported network detected. Please switch to one of: ${supportedNames}.`,
-      "danger",
-      { duration: 0 },
-    );
-  }
-}
