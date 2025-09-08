@@ -1,30 +1,7 @@
 import NotificationSystem from "./notifications.js";
 import { ConnectWallet } from "./connect.js";
-import { networkConfigs } from "./connect-config.js";
 
 const wallet = new ConnectWallet();
-
-// Convert hex or number to a decimal number
-const normalizeChainId = (chainId) => {
-  if (typeof chainId === "string" && chainId.startsWith("0x")) {
-    return parseInt(chainId, 16);
-  }
-  return Number(chainId);
-};
-
-// ✅ Build list of allowed chain IDs (only showInUI: true)
-const allowedChains = Object.values(networkConfigs)
-  .filter((cfg) => cfg.showInUI)
-  .map((cfg) => cfg.chainId);
-
-// ✅ Small utility to guard function calls
-const onlyAllowed = (chainId, fn) => {
-  const normalized = normalizeChainId(chainId);
-  if (!allowedChains.includes(normalized)) {
-    throw new Error(`Chain ${chainId} is not allowed`);
-  }
-  return fn();
-};
 
 document.addEventListener("DOMContentLoaded", () => {
   const elements = {
@@ -59,14 +36,13 @@ document.addEventListener("DOMContentLoaded", () => {
     NotificationSystem.show("Wallet disconnected", "warning");
   });
 
-  wallet.onChainChange((chainId) => {
-    try {
-      onlyAllowed(chainId, () => {
-        NotificationSystem.show(`Switched to network ${chainId}`, "info");
-      });
-    } catch (err) {
-      NotificationSystem.show(err.message, "danger", { duration: 0 });
+  wallet.onChainChange(({ chainId, name, allowed }) => {
+    if (!allowed) {
+      NotificationSystem.show(`Chain ${chainId} is not allowed`, "danger");
+      return;
     }
+
+    NotificationSystem.show(`Switched to ${name}`, "info");
   });
 
   // Demo notification buttons
