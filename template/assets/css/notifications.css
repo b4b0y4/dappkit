@@ -70,7 +70,7 @@
 .notif-message {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   flex: 1;
 }
 .notif-close {
