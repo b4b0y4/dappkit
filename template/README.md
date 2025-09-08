@@ -69,10 +69,7 @@ NotificationSystem.show('Operation completed!', 'success');
 NotificationSystem.show('Please check your input', 'warning');
 NotificationSystem.show('Something went wrong!', 'danger');
 NotificationSystem.show('Here is some information', 'info');
-```
 
-#### Advanced Options
-```javascript
 // Persistent notification (won't auto-hide)
 NotificationSystem.show('Important message', 'info', { duration: 0 });
 
@@ -226,104 +223,6 @@ async function getBalance() {
     return ethers.formatEther(balance);
 }
 ```
-
-## Integration Example
-
-Here's how all components work together:
-
-```javascript
-import { ConnectWallet } from "./js/connect.js";
-import NotificationSystem from './js/notifications.js';
-
-const wallet = new ConnectWallet();
-
-document.addEventListener("DOMContentLoaded", () => {
-    // Setup wallet connection
-    const elements = {
-        connectBtn: document.querySelector("#connect-btn"),
-        connectWalletList: document.querySelector("#connect-wallet-list"),
-        // ... other elements
-    };
-
-    wallet.setElements(elements);
-
-    // Connect wallet events to notifications
-    wallet.onConnect((data) => {
-      const account = data.accounts[0];
-      const shortAccount = `${account.slice(0, 6)}...${account.slice(-4)}`;
-      NotificationSystem.show(`Connected to ${shortAccount}`, "success");
-
-      // check network immediately
-      checkNetwork(data.chainId);
-    });
-
-    wallet.onDisconnect(() => {
-      NotificationSystem.show("Wallet disconnected", "danger");
-    });
-
-    wallet.onChainChange((chainId) => {
-      NotificationSystem.show(`Switched to network ${chainId}`, "info");
-      checkNetwork(chainId);
-    });
-
-    // Example transaction with notifications
-    async function handleTransaction() {
-        try {
-            NotificationSystem.show('Processing transaction...', 'info');
-            const result = await sendETH('0x742d35Cc...', '0.1');
-            NotificationSystem.show('Transaction successful!', 'success');
-        } catch (error) {
-            NotificationSystem.show('Transaction failed', 'danger');
-        }
-    }
-
-    window.walletConnect = wallet;
-
-    // --- Helpers ---
-    function checkNetwork(chainIds) {
-      // Normalize to array (in case we get a single ID)
-      const chainArray = Array.isArray(chainIds) ? chainIds : [chainIds];
-
-      // Convert to decimal strings (handles both hex like "0x1" and decimal like "1")
-      const chainStrs = chainArray.map((id) => {
-        const numericId =
-          typeof id === "string" && id.startsWith("0x")
-            ? parseInt(id, 16)
-            : parseInt(id, 10);
-        return String(numericId);
-      });
-
-      console.log("Normalized chain IDs:", chainStrs);
-      console.log("Supported chains:", SUPPORTED_CHAINS);
-
-      // Check if any connected chain is supported
-      const isSupported = chainStrs.some((id) => SUPPORTED_CHAINS.includes(id));
-
-      console.log("Is supported:", isSupported);
-
-      if (!isSupported) {
-        // Get supported network names from the config
-        const supportedNames = Object.values(networkConfigs)
-          .filter((net) => net.showInUI)
-          .map((net) => net.name)
-          .join(", ");
-
-        NotificationSystem.show(
-          `Unsupported network detected. Please switch to one of: ${supportedNames}.`,
-          "danger",
-          { duration: 0 },
-        );
-      }
-    }
-
-});
-```
-
-## Browser Requirements
-
-- Modern browser with ES6+ support
-- HTTPS connection (required by Web3 wallets)
-- EIP-6963 compatible wallet (MetaMask, Coinbase, etc.)
 
 ## Dependencies
 
