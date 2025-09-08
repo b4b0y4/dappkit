@@ -4,6 +4,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -26,7 +27,9 @@ function copyDir(srcDir, destDir) {
       copyDir(srcPath, destPath);
     } else {
       if (fs.existsSync(destPath)) {
-        console.error(`✖ File already exists, refusing to overwrite: ${path.relative(process.cwd(), destPath)}`);
+        console.error(
+          `✖ File already exists, refusing to overwrite: ${path.relative(process.cwd(), destPath)}`,
+        );
         process.exitCode = 1;
         process.exit();
       }
@@ -38,10 +41,22 @@ function copyDir(srcDir, destDir) {
 ensureDir(dest);
 copyDir(src, dest);
 
+try {
+  execSync("git init", { cwd: dest, stdio: "pipe" });
+  console.log("✅ Initialized git repository");
+} catch (e) {
+  console.error("✖ Could not initialize git repository");
+  console.error(e);
+}
+
 const rel = path.relative(process.cwd(), dest) || ".";
 console.log(`✅ Project initialized in ${rel}`);
 console.log(`
 Next steps:
   1) cd ${rel}
-  2) Open index.html in your browser (no build needed), or start a static server.
+  2) Start a local development server. For example:
+     npx serve
+     or
+     python3 -m http.server
+  3) Open the provided URL in your browser.
 `);
