@@ -33,25 +33,25 @@
   color: rgb(var(--color-blue));
   background-color: rgba(var(--color-blue), 0.1);
   border-left-color: rgb(var(--color-blue));
-  box-shadow: 0 8px 32px rgba(var(--color-blue), 0.15);
+  box-shadow: 0 4px 8px rgba(var(--color-blue), 0.15);
 }
 .notification.success .notif-content {
   color: rgb(var(--color-green));
   background-color: rgba(var(--color-green), 0.1);
   border-left-color: rgb(var(--color-green));
-  box-shadow: 0 8px 32px rgba(var(--color-green), 0.15);
+  box-shadow: 0 4px 8px rgba(var(--color-green), 0.15);
 }
 .notification.warning .notif-content {
   color: rgb(var(--color-orange));
   background-color: rgba(var(--color-orange), 0.1);
   border-left-color: rgb(var(--color-orange));
-  box-shadow: 0 8px 32px rgba(var(--color-orange), 0.15);
+  box-shadow: 0 4px 8px rgba(var(--color-orange), 0.15);
 }
 .notification.danger .notif-content {
   color: rgb(var(--color-red));
   background-color: rgba(var(--color-red), 0.1);
   border-left-color: rgb(var(--color-red));
-  box-shadow: 0 8px 32px rgba(var(--color-red), 0.15);
+  box-shadow: 0 4px 8px rgba(var(--color-red), 0.15);
 }
 .notif-content {
   display: flex;
@@ -62,7 +62,7 @@
   font-size: 15px;
   font-weight: 500;
   backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 0 4px 8px rgba(0, 0, 0, 0.12);
   border-left: 4px solid;
   position: relative;
   overflow: hidden;
