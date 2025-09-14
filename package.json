@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Initializer that scaffolds a project with a theme switcher and a clean notification system.",
   "bin": {
-    "init-starter": "init.js"
+    "starter-init": "init.js"
   },
   "engines": {
     "node": ">=18.0.0"
