@@ -23,7 +23,7 @@ This tool is designed for quick starts without any build tools.
 2.  **Run the initializer:**
     Use the `init-starter` command to create a new project in a specified directory.
     ```bash
-    init-starter my-project
+    starter-init my-project
     ```
     This will create a new directory named `my-project` with the template files. If you want to initialize in the current directory, just run `init-starter .`
 
