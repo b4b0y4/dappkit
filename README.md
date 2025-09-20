@@ -8,7 +8,7 @@ This is a simple command-line tool to bootstrap a new project with a pre-configu
 
 - **Theme Switcher**: A reusable theme switcher with single-click to toggle between light and dark modes, and a double-click to reset to the system preference.
 - **Notification System**: Modern, non-blocking slide-in notifications (toasts) with duration, a close button, and a progress bar.
-- **Web3 Wallet Connection**: EIP-6963 compatible wallet connection with multi-network support, persistent state, and ENS integration.
+- **Connect Wallet Component**: EIP-6963 compatible wallet connection with multi-network support, persistent state, and ENS integration.
 
 This tool is designed for quick starts without any build tools.
 

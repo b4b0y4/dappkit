@@ -1,12 +1,12 @@
 # Theme + Notifications + Wallet Connection Starter
 
-A minimal dependency template for a quick start with a theme switcher, clean notification system, and Web3 wallet connection. No build tools required—just open `index.html` in your browser.
+A minimal dependency template for a quick start with a theme switcher, clean notification system, and a connect wallet component. No build tools required—just open `index.html` in your browser.
 
 ## Features
 
 - **Theme Switcher**: A reusable theme switcher with single-click to toggle between light and dark modes, and a double-click to reset to the system preference.
 - **Notification System**: Modern, non-blocking slide-in notifications (toasts) with duration, a close button, and a progress bar.
-- **Web3 Wallet Connection**: EIP-6963 compatible wallet connection with multi-network support, persistent state, and ENS integration.
+- **Connect Wallet Component**: EIP-6963 compatible wallet connection with multi-network support, persistent state, and ENS integration.
 
 ## File Structure
 
@@ -97,7 +97,7 @@ NotificationSystem.show('Clean message', 'warning', {
 | `showProgress` | `true` | Show progress bar |
 | `html` | `false` | Allow HTML content |
 
-### 4. Web3 Wallet Connection
+### 4. Connect Wallet Component
 
 Connect to Ethereum wallets with EIP-6963 support and multi-network functionality:
 
@@ -222,14 +222,6 @@ async function getBalance() {
 ## Dependencies
 
 - **ethers.js** - Required for Web3 functionality
-- No other external dependencies
-
-## Browser Support
-
-- Chrome 60+
-- Firefox 60+
-- Safari 12+
-- Edge 79+
 
 ## License
 
