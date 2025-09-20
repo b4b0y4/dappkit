@@ -6,9 +6,7 @@
     black 12%
   );
   --connect-shadow: 0 2px 5px color-mix(in srgb, black 20%, transparent);
-  --color-bg-btn-start: #4babe7;
-  --color-bg-btn-end: #e47fe6;
-  --connect-color-green: 46, 204, 113;
+  --connect-dot: 46, 204, 113;
 }
 
 [data-theme="dark"] {
@@ -19,7 +17,6 @@
     white 14%
   );
   --connect-shadow: 0 2px 5px color-mix(in srgb, white 15%, transparent);
-  --color-bg-btn-end: #57d47c;
 }
 
 .connect-wrapper {
@@ -43,15 +40,10 @@
   display: flex;
   align-items: center;
   font-size: 1.1em;
-  color: var(--color-bg);
-  background: linear-gradient(
-    270deg,
-    var(--color-bg-btn-start),
-    var(--color-bg-btn-end)
-  );
-  background-size: 400% 400%;
-  animation: connect-gradient-flow 8s ease infinite;
+  color: var(--color-txt);
+  background: var(--connect-color-btn);
   border: none;
+  height: 40px;
   padding: 7.5px 15px;
   border-radius: 10px;
   cursor: pointer;
@@ -60,11 +52,7 @@
     box-shadow: 0 0 0 0.5px var(--connect-color-btn);
   }
   &.connected {
-    color: var(--color-txt);
-    background: var(--connect-color-btn);
-    padding: 7.5px;
-    background-size: initial;
-    animation: none;
+    padding: 7.5px 15px;
   }
   &.ens-resolved {
     flex-direction: row-reverse;
@@ -72,7 +60,7 @@
     gap: 8px;
     height: auto;
     padding: 5px 10px;
-    img {
+    & img {
       margin-right: 0;
     }
   }
@@ -222,7 +210,7 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background-color: rgb(var(--connect-color-green));
+      background-color: rgb(var(--connect-dot));
       border: 1px solid var(--color-bg);
       box-shadow: none;
       animation: none;
@@ -236,19 +224,19 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: rgb(var(--connect-color-green));
-  box-shadow: 0 0 0 0 rgba(var(--connect-color-green), 0.5);
+  background-color: rgb(var(--connect-dot));
+  box-shadow: 0 0 0 0 rgba(var(--connect-dot), 0.5);
   animation: connect-pulse 1.5s ease-out infinite;
 }
 
 @keyframes connect-pulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(var(--connect-color-green), 0.5);
+    box-shadow: 0 0 0 0 rgba(var(--connect-dot), 0.5);
   }
   70% {
-    box-shadow: 0 0 0 4px rgba(var(--connect-color-green), 0);
+    box-shadow: 0 0 0 4px rgba(var(--connect-dot), 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(var(--connect-color-green), 0);
+    box-shadow: 0 0 0 0 rgba(var(--connect-dot), 0);
   }
 }
