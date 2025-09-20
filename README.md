@@ -1,6 +1,6 @@
-# starter-init
+# dappkit
 
-Initializer that scaffolds a project with a theme switcher, a clean notification system, and Web3 wallet connection.
+Initializer that scaffolds a decentralized application with a connect wallet component, a theme switcher and a clean notification system.
 
 ## About
 

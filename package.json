@@ -1,11 +1,11 @@
 {
-  "name": "starter-init",
+  "name": "dappkit",
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Initializer that scaffolds a project with a theme switcher and a clean notification system.",
+  "description": "Initializer that scaffolds a decentralized application with a connect wallet component, a theme switcher and a clean notification system.",
   "bin": {
-    "starter-init": "init.js"
+    "dappkit": "init.js"
   },
   "engines": {
     "node": ">=18.0.0"
