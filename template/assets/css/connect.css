@@ -84,7 +84,7 @@
   & .ens-name {
     display: flex;
     align-items: center;
-    font-size: 1em;
+    font-size: 0.9em;
   }
   & .ens-address {
     font-size: 0.6em;
