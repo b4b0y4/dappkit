@@ -162,6 +162,7 @@ export class ConnectWallet {
       const short = `${address.substring(0, 5)}...${address.substring(address.length - 4)}`;
       this.elements.connectBtn.innerHTML = short;
       this.elements.connectBtn.classList.add("connected");
+      this.elements.connectBtn.classList.remove("ens-resolved");
       this.resolveENS(address);
     }
   }
@@ -177,9 +178,17 @@ export class ConnectWallet {
       if (!ensName) return;
 
       const ensAvatar = await mainnetProvider.getAvatar(ensName);
-      this.elements.connectBtn.innerHTML = ensAvatar
-        ? `<img src="${ensAvatar}" style="border-radius: 50%">${ensName}`
-        : ensName;
+      const short = `${address.substring(0, 5)}...${address.substring(
+        address.length - 4,
+      )}`;
+
+      let buttonContent = `<div class="ens-details"><div class="ens-name">${ensName}</div><div class="ens-address">${short}</div></div>`;
+      if (ensAvatar) {
+        buttonContent += `<img src="${ensAvatar}" style="border-radius: 50%">`;
+      }
+
+      this.elements.connectBtn.innerHTML = buttonContent;
+      this.elements.connectBtn.classList.add("ens-resolved");
     } catch (error) {
       console.log("ENS resolution failed:", error);
     }
@@ -244,7 +253,7 @@ export class ConnectWallet {
 
     if (this.elements.connectBtn) {
       this.elements.connectBtn.innerHTML = "Connect";
-      this.elements.connectBtn.classList.remove("connected");
+      this.elements.connectBtn.classList.remove("connected", "ens-resolved");
     }
 
     if (this.elements.connectWalletList) {

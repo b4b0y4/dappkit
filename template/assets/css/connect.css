@@ -52,16 +52,13 @@
   background-size: 400% 400%;
   animation: connect-gradient-flow 8s ease infinite;
   border: none;
-  height: 35px;
   padding: 7.5px 15px;
   border-radius: 10px;
   cursor: pointer;
   transition: box-shadow 0.3s ease-in-out;
-
   &:hover {
     box-shadow: 0 0 0 0.5px var(--connect-color-btn);
   }
-
   &.connected {
     color: var(--color-txt);
     background: var(--connect-color-btn);
@@ -69,10 +66,33 @@
     background-size: initial;
     animation: none;
   }
-
-  img {
-    width: 24px;
-    height: 24px;
+  &.ens-resolved {
+    flex-direction: row-reverse;
+    justify-content: space-between;
+    gap: 8px;
+    height: auto;
+    padding: 5px 10px;
+    img {
+      margin-right: 0;
+    }
+  }
+  & .ens-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  & .ens-name {
+    display: flex;
+    align-items: center;
+    font-size: 1em;
+  }
+  & .ens-address {
+    font-size: 0.6em;
+    opacity: 0.7;
+  }
+  & img {
+    width: 26px;
+    height: 26px;
     margin-right: 5px;
     border: 1px solid var(--color-bg);
   }
@@ -104,7 +124,6 @@
   transition:
     opacity 0.3s ease-in-out,
     transform 0.3s ease-in-out;
-
   &.show {
     pointer-events: auto;
     opacity: 1;
@@ -113,7 +132,7 @@
 }
 
 .connect-wallets {
-  button {
+  & button {
     display: flex;
     align-items: center;
     font-size: 1em;
@@ -126,17 +145,14 @@
     margin: 2.5px 0;
     cursor: pointer;
     transition: background-color 0.3s ease-in-out;
-
     &:hover {
       background-color: var(--connect-color-hvr);
     }
-
     &:last-child {
       border-radius: 0 0 15px 15px;
       margin-bottom: 0;
     }
-
-    img {
+    & img {
       height: 32px;
       width: 32px;
       margin-right: 8px;
@@ -159,12 +175,10 @@
   transition: background-color 0.3s ease-in-out;
   border-radius: 0 0 15px 15px;
   margin-bottom: 0;
-
   &:hover {
     background-color: var(--connect-color-hvr);
   }
-
-  a {
+  & a {
     text-decoration: none;
     color: var(--color-txt);
     width: 100%;
@@ -185,8 +199,7 @@
   height: 50px;
   margin: 0;
   border-radius: 15px 15px 0 0;
-
-  button {
+  & button {
     position: relative;
     display: flex;
     align-items: center;
@@ -196,15 +209,13 @@
     padding: 0;
     margin: 0;
     cursor: pointer;
-
-    img {
-      width: 25px;
-      height: 25px;
+    & img {
+      width: 26px;
+      height: 26px;
       border-radius: 50%;
       border: 1px solid var(--color-bg);
     }
-
-    .connect-indicator {
+    & .connect-indicator {
       position: absolute;
       top: -2px;
       right: -2px;
