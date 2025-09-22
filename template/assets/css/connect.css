@@ -241,7 +241,7 @@
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 480px) {
   .connect-wallet-list {
     position: fixed;
     bottom: 0;
