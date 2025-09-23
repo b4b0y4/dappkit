@@ -40,6 +40,16 @@
       content="https://b4b0y4.github.io/dappkit/assets/img/dappkit.png"
     />
     <title>dappkit</title>
+    <script>
+      (() => {
+        const themes = ["light", "dark"];
+        const sys = matchMedia("(prefers-color-scheme: dark)").matches ? 1 : 0;
+        const cur = localStorage.themeOverride
+          ? themes.indexOf(localStorage.themeOverride)
+          : sys;
+        document.documentElement.dataset.theme = themes[cur];
+      })();
+    </script>
     <link rel="stylesheet" href="./assets/css/theme.css" />
     <link rel="stylesheet" href="./assets/css/notifications.css" />
     <link rel="stylesheet" href="./assets/css/connect.css" />
