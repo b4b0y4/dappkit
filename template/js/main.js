@@ -58,10 +58,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  NotificationSystem.show(
-    "Welcome! Theme switcher is in the top-right.",
-    "success",
-  );
+  NotificationSystem.show("Welcome to dappkit!", "success");
 });
 
 window.walletConnect = wallet;
