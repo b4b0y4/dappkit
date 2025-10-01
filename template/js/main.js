@@ -21,7 +21,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   wallet.onChainChange(({ chainId, name, allowed }) => {
     if (!allowed) {
-      NotificationSystem.show(`Chain ${chainId} is not allowed`, "danger");
+      Modal.alert(
+        `Please switch to a supported network. Chain ${chainId} is not supported.`,
+        {
+          title: "Wrong Network",
+        },
+      );
       return;
     }
     NotificationSystem.show(`Switched to ${name}`, "info");

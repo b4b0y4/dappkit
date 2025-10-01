@@ -32,7 +32,6 @@ export default class Modal {
       onConfirm: null,
       onCancel: null,
       onClose: null,
-      closeOnOverlay: true,
       ...options,
     };
 
@@ -62,14 +61,17 @@ export default class Modal {
     modal.className = "modal-overlay";
     modal.setAttribute("data-id", id);
 
-    const safeTitle = config.html ? config.title : this.escapeHtml(config.title);
-    const safeContent = config.html ? config.content : this.escapeHtml(config.content);
+    const safeTitle = config.html
+      ? config.title
+      : this.escapeHtml(config.title);
+    const safeContent = config.html
+      ? config.content
+      : this.escapeHtml(config.content);
 
     modal.innerHTML = `
       <div class="modal-dialog">
         <div class="modal-header">
           <h3 class="modal-title">${safeTitle}</h3>
-          <button class="modal-close">&times;</button>
         </div>
         <div class="modal-body">
           ${safeContent}
@@ -81,12 +83,8 @@ export default class Modal {
       </div>
     `;
 
-    const dialog = modal.querySelector(".modal-dialog");
-    const closeBtn = modal.querySelector(".modal-close");
     const cancelBtn = modal.querySelector(".modal-btn-cancel");
     const confirmBtn = modal.querySelector(".modal-btn-confirm");
-
-    closeBtn?.addEventListener("click", () => this.close(id));
 
     cancelBtn?.addEventListener("click", () => {
       if (config.onCancel) {
@@ -100,18 +98,6 @@ export default class Modal {
         config.onConfirm();
       }
       this.close(id);
-    });
-
-    if (config.closeOnOverlay) {
-      modal.addEventListener("click", (e) => {
-        if (e.target === modal) {
-          this.close(id);
-        }
-      });
-    }
-
-    dialog.addEventListener("click", (e) => {
-      e.stopPropagation();
     });
 
     document.addEventListener("keydown", (e) => {

@@ -83,27 +83,6 @@
   color: var(--color-txt);
 }
 
-.modal-close {
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-txt);
-  opacity: 0.7;
-  transition: opacity 0.2s;
-  border-radius: 6px;
-
-  &:hover {
-    opacity: 1;
-    background: color-mix(in srgb, var(--color-txt) 10%, transparent);
-  }
-}
-
 .modal-body {
   padding: 24px;
   overflow-y: auto;
@@ -129,15 +108,8 @@
   font-weight: 500;
   cursor: pointer;
   border: none;
-  transition: all 0.2s;
+  transition: background 0.2s;
   font-family: inherit;
-
-  &:hover {
-    transform: translateY(-1px);
-  }
-  &:active {
-    transform: translateY(0);
-  }
 }
 
 .modal-btn-cancel {
