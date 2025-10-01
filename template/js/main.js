@@ -1,6 +1,5 @@
 import NotificationSystem from "./notifications.js";
 import { ConnectWallet } from "./connect.js";
-import Modal from "./modal.js";
 import Copy from "./copy.js";
 
 const wallet = new ConnectWallet();
@@ -21,11 +20,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   wallet.onChainChange(({ chainId, name, allowed }) => {
     if (!allowed) {
-      Modal.alert(
+      NotificationSystem.show(
         `Please switch to a supported network. Chain ${chainId} is not supported.`,
-        {
-          title: "Wrong Network",
-        },
+        "danger",
+        { duration: 0 },
       );
       return;
     }
@@ -41,21 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   NotificationSystem.show("Welcome to dappkit!", "success");
-
-  // Demo modal buttons
-  document.querySelector("#demo-modal")?.addEventListener("click", async () => {
-    const confirmed = await Modal.confirm(
-      "Are you sure you want to proceed with this action?",
-      { title: "Confirm Action" },
-    );
-    if (confirmed) {
-      NotificationSystem.show("Action confirmed!", "success");
-    }
-  });
-
-  document.querySelector("#demo-alert")?.addEventListener("click", () => {
-    Modal.alert("This is an alert modal!", { title: "Alert" });
-  });
 
   // Demo transaction tracker
   document.querySelector("#demo-tx")?.addEventListener("click", async () => {
@@ -91,5 +74,4 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.ConnectWallet = wallet;
 window.NotificationSystem = NotificationSystem;
-window.Modal = Modal;
 window.Copy = Copy;

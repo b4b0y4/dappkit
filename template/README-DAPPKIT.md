@@ -7,7 +7,6 @@ A minimal dependency template for decentralized applications. No build tools req
 - **Theme Switcher**: Light/dark mode with system preference
 - **Notifications**: Toast notifications with transaction tracking
 - **Wallet Connect**: EIP-6963 compatible with multi-network support
-- **Modal**: Alerts and confirmations
 - **Copy**: One-click copy with visual feedback
 
 ## Quick Start
@@ -15,7 +14,6 @@ A minimal dependency template for decentralized applications. No build tools req
 ```javascript
 import NotificationSystem from './js/notifications.js';
 import { ConnectWallet } from './js/connect.js';
-import Modal from './js/modal.js';
 import Copy from './js/copy.js';
 
 const wallet = new ConnectWallet();
@@ -24,11 +22,12 @@ wallet.onConnect((data) => {
   NotificationSystem.show('Connected!', 'success');
 });
 
-wallet.onChainChange(({ allowed }) => {
+wallet.onChainChange(({ chainId, allowed }) => {
   if (!allowed) {
-    Modal.alert('Please switch to a supported network', {
-      title: 'Wrong Network'
-    });
+    NotificationSystem.show(
+      `Chain ${chainId} is not supported`,
+      'danger'
+    );
   }
 });
 ```
@@ -80,29 +79,6 @@ wallet.getEthersProvider();        // ethers BrowserProvider
 await wallet.disconnect();
 ```
 
-### Modal
-
-```javascript
-// Alert (blocking)
-await Modal.alert('Wrong network!', { title: 'Error' });
-
-// Confirm (yes/no)
-const confirmed = await Modal.confirm('Send ETH?', { title: 'Confirm' });
-
-// Custom
-Modal.show({
-  title: 'Title',
-  content: 'Content here',
-  html: false,
-  confirmText: 'OK',
-  cancelText: 'Cancel',
-  showCancel: true,
-  showConfirm: true,
-  onConfirm: () => {},
-  onCancel: () => {}
-});
-```
-
 ### Copy to Clipboard
 
 ```html
@@ -124,7 +100,6 @@ await Copy.copyToClipboard('Text', element);
 ```javascript
 import NotificationSystem from './js/notifications.js';
 import { ConnectWallet } from './js/connect.js';
-import Modal from './js/modal.js';
 
 const wallet = new ConnectWallet();
 
@@ -132,21 +107,16 @@ wallet.onConnect(() => {
   NotificationSystem.show('Connected!', 'success');
 });
 
-wallet.onChainChange(({ allowed }) => {
+wallet.onChainChange(({ chainId, allowed }) => {
   if (!allowed) {
-    Modal.alert('Please switch to a supported network', {
-      title: 'Wrong Network'
-    });
+    NotificationSystem.show(
+      `Chain ${chainId} is not supported`,
+      'danger'
+    );
   }
 });
 
 async function sendETH(to, amount) {
-  const confirmed = await Modal.confirm(
-    `Send ${amount} ETH to ${to}?`,
-    { title: 'Confirm Transaction' }
-  );
-
-  if (!confirmed) return;
 
   try {
     const provider = wallet.getEthersProvider();
@@ -178,12 +148,10 @@ async function sendETH(to, amount) {
 <link rel="stylesheet" href="./assets/css/theme.css" />
 <link rel="stylesheet" href="./assets/css/notifications.css" />
 <link rel="stylesheet" href="./assets/css/connect.css" />
-<link rel="stylesheet" href="./assets/css/modal.css" />
 <link rel="stylesheet" href="./assets/css/copy.css" />
 
 <!-- Containers (auto-inject if missing) -->
 <div id="notificationContainer"></div>
-<div id="modalContainer"></div>
 
 <!-- Wallet Widget -->
 <div class="connect-wrapper">
