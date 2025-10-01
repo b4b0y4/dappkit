@@ -55,37 +55,13 @@ export default class Copy {
 
   static async copyToClipboard(text, element = null) {
     try {
-      if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(text);
-      } else {
-        this.fallbackCopy(text);
-      }
-
+      await navigator.clipboard.writeText(text);
       this.showFeedback(element, true);
       return true;
     } catch (error) {
       console.error("Copy failed:", error);
       this.showFeedback(element, false);
       return false;
-    }
-  }
-
-  static fallbackCopy(text) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.position = "fixed";
-    textArea.style.left = "-999999px";
-    textArea.style.top = "-999999px";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-
-    try {
-      document.execCommand("copy");
-      textArea.remove();
-    } catch (error) {
-      textArea.remove();
-      throw error;
     }
   }
 
