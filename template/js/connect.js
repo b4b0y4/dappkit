@@ -34,6 +34,7 @@ export class ConnectWallet {
     this.setupUIEvents();
     this.requestProviders();
     this.restoreState();
+    this.render();
   }
 
   discoverElements() {
