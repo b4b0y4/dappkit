@@ -40,13 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   NotificationSystem.show("Welcome to dappkit!", "success");
 
-  NotificationSystem.track(
-    "0x" + Math.random().toString(16).substring(2, 66), // fake tx hash
-    1, // fake chainId (Ethereum mainnet, for example)
-    "https://ethereum-rpc.publicnode.com", // fake RPC url
-    { label: "Demo Transaction" },
-  );
-
   // Demo transaction tracker
   document.querySelector("#demo-tx")?.addEventListener("click", async () => {
     if (!wallet.isConnected()) {
