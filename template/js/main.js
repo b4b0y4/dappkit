@@ -71,7 +71,3 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
-
-window.ConnectWallet = wallet;
-window.NotificationSystem = NotificationSystem;
-window.Copy = Copy;
