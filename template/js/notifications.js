@@ -2,11 +2,21 @@ export default class NotificationSystem {
   static container = null;
   static notifications = new Map();
   static idCounter = 0;
+  static initialized = false;
 
   static init() {
+    if (this.initialized) return;
+
+    this.container = document.getElementById("notificationContainer");
+
+    // Auto-inject container if missing
     if (!this.container) {
-      this.container = document.getElementById("notificationContainer");
+      this.container = document.createElement("div");
+      this.container.id = "notificationContainer";
+      document.body.appendChild(this.container);
     }
+
+    this.initialized = true;
   }
 
   static show(message, type = "info", options = {}) {
@@ -83,7 +93,7 @@ export default class NotificationSystem {
     notif.element.classList.add("hide");
 
     setTimeout(() => {
-      if (notif.element.parentNode) {
+      if (notif.element?.parentNode) {
         notif.element.parentNode.removeChild(notif.element);
       }
       this.notifications.delete(id);

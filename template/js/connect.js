@@ -6,9 +6,7 @@ export class ConnectWallet {
     this.networkConfigs = options.networkConfigs || networkConfigs;
     this.providers = [];
     this.storage = options.storage || window.localStorage;
-    this.elements = {};
     this.currentProvider = null;
-    this.eventsSetup = false;
 
     // Precompute lookups
     this.chainIdToName = {};
@@ -20,10 +18,32 @@ export class ConnectWallet {
       }
     });
 
-    this.init();
+    // Auto-discover elements (deferred until DOM is ready)
+    this.elements = {};
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => this.init());
+    } else {
+      this.init();
+    }
   }
 
-  // Normalize hex or decimal chainId
+  init() {
+    this.discoverElements();
+    this.bindEvents();
+    this.setupUIEvents();
+    this.requestProviders();
+    this.restoreState();
+  }
+
+  discoverElements() {
+    this.elements = {
+      connectBtn: document.querySelector("#connect-btn"),
+      connectChainList: document.querySelector("#connect-chain-list"),
+      connectWalletList: document.querySelector("#connect-wallet-list"),
+      connectWallets: document.querySelector("#connect-wallets"),
+    };
+  }
+
   normalizeChainId(chainId) {
     if (typeof chainId === "string" && chainId.startsWith("0x")) {
       return parseInt(chainId, 16);
@@ -31,32 +51,33 @@ export class ConnectWallet {
     return Number(chainId);
   }
 
-  // Check if chain is allowed
   isAllowed(chainId) {
     const normalized = this.normalizeChainId(chainId);
     return this.allowedChains.includes(normalized);
   }
 
-  init() {
-    this.bindEvents();
-    this.requestProviders();
-    this.restoreState();
-  }
-
-  setElements(elements) {
-    this.elements = {
-      connectBtn: null,
-      connectChainList: null,
-      connectWalletList: null,
-      connectWallets: null,
-      ...elements,
-    };
-    this.render();
-  }
-
   bindEvents() {
     window.addEventListener("eip6963:announceProvider", (event) => {
       this.handleProviderAnnounce(event);
+    });
+  }
+
+  setupUIEvents() {
+    if (this.elements.connectBtn) {
+      this.elements.connectBtn.addEventListener("click", (event) => {
+        event.stopPropagation();
+        this.toggleWalletList();
+      });
+    }
+
+    if (this.elements.connectWalletList) {
+      this.elements.connectWalletList.addEventListener("click", (event) => {
+        event.stopPropagation();
+      });
+    }
+
+    document.addEventListener("click", () => {
+      this.hideWalletList();
     });
   }
 
@@ -120,12 +141,10 @@ export class ConnectWallet {
   }
 
   setupProviderEvents(provider) {
-    // Only setup events once per connection
     if (this.currentProvider === provider.provider) {
       return;
     }
 
-    // Remove old event listeners if switching providers
     if (this.currentProvider) {
       this.currentProvider.removeAllListeners?.();
     }
@@ -356,7 +375,6 @@ export class ConnectWallet {
     }
   }
 
-  // Helper methods
   isConnected() {
     return this.storage.getItem("connectConnected") === "true";
   }
@@ -375,7 +393,6 @@ export class ConnectWallet {
     return provider?.provider;
   }
 
-  // Public API methods
   async getAccount() {
     const provider = this.getConnectedProvider();
     if (!provider) return null;
@@ -410,7 +427,6 @@ export class ConnectWallet {
     return provider ? new ethers.BrowserProvider(provider) : null;
   }
 
-  // Event handlers for external use
   onConnect(callback) {
     this.onConnectCallback = callback;
   }
