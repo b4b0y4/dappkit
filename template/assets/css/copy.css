@@ -1,0 +1,94 @@
+:root {
+  --copy-color-success: 46, 204, 113;
+  --copy-color-error: 234, 51, 35;
+}
+
+[data-copy] {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  transition: opacity 0.2s;
+}
+
+[data-copy]:hover {
+  opacity: 0.8;
+}
+
+[data-copy]:active {
+  transform: scale(0.95);
+}
+
+.copy-success {
+  animation: copy-pulse-success 0.6s ease-out;
+}
+
+.copy-error {
+  animation: copy-pulse-error 0.6s ease-out;
+}
+
+@keyframes copy-pulse-success {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--copy-color-success), 0);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(var(--copy-color-success), 0.3);
+  }
+}
+
+@keyframes copy-pulse-error {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(var(--copy-color-error), 0);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(var(--copy-color-error), 0.3);
+  }
+}
+
+.copy-original-content {
+  visibility: hidden;
+}
+
+.copy-feedback {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 14px;
+  font-weight: 600;
+  pointer-events: none;
+  animation: copy-feedback-show 0.4s ease-out;
+  white-space: nowrap;
+}
+
+.copy-success .copy-feedback {
+  color: rgb(var(--copy-color-success));
+}
+
+.copy-error .copy-feedback {
+  color: rgb(var(--copy-color-error));
+}
+
+@keyframes copy-feedback-show {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+}
+
+.copy-icon {
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+[data-copy]:hover .copy-icon {
+  transform: scale(1.1);
+}

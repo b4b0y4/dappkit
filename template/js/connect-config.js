@@ -5,6 +5,7 @@ export const networkConfigs = {
     chainId: 1,
     chainIdHex: "0x1",
     icon: "./assets/img/eth.png",
+    explorerUrl: "https://etherscan.io/tx/",
     showInUI: true,
   },
   arbitrum: {
@@ -13,6 +14,7 @@ export const networkConfigs = {
     chainId: 42161,
     chainIdHex: "0xa4b1",
     icon: "./assets/img/arb.png",
+    explorerUrl: "https://arbiscan.io/tx/",
     showInUI: true,
   },
   optimism: {
@@ -21,6 +23,7 @@ export const networkConfigs = {
     chainId: 10,
     chainIdHex: "0xa",
     icon: "./assets/img/op.png",
+    explorerUrl: "https://optimistic.etherscan.io/tx/",
     showInUI: true,
   },
   base: {
@@ -29,6 +32,7 @@ export const networkConfigs = {
     chainId: 8453,
     chainIdHex: "0x2105",
     icon: "./assets/img/base.png",
+    explorerUrl: "https://basescan.org/tx/",
     showInUI: true,
   },
   zksync: {
@@ -37,6 +41,7 @@ export const networkConfigs = {
     chainId: 324,
     chainIdHex: "0x144",
     icon: "./assets/img/zksync.png",
+    explorerUrl: "https://explorer.zksync.io/tx/",
     showInUI: false,
   },
   scroll: {
@@ -45,14 +50,7 @@ export const networkConfigs = {
     chainId: 534352,
     chainIdHex: "0x82750",
     icon: "./assets/img/scroll.png",
-    showInUI: false,
-  },
-  zkevm: {
-    name: "zkEvm",
-    rpcUrl: "https://zkevm-rpc.com",
-    chainId: 1101,
-    chainIdHex: "0x44d",
-    icon: "./assets/img/zkevm.png",
+    explorerUrl: "https://scrollscan.com/tx/",
     showInUI: false,
   },
   sepolia: {
@@ -61,6 +59,7 @@ export const networkConfigs = {
     chainId: 11155111,
     chainIdHex: "0xaa36a7",
     icon: "./assets/img/sepolia.png",
+    explorerUrl: "https://sepolia.etherscan.io/tx/",
     showInUI: false,
   },
 };
