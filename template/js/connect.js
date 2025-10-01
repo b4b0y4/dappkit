@@ -67,7 +67,7 @@ export class ConnectWallet {
     if (this.elements.connectBtn) {
       this.elements.connectBtn.addEventListener("click", (event) => {
         event.stopPropagation();
-        this.toggleWalletList();
+        this.toggleModal();
       });
     }
 
@@ -78,7 +78,7 @@ export class ConnectWallet {
     }
 
     document.addEventListener("click", () => {
-      this.hideWalletList();
+      this.hideModal();
     });
   }
 
@@ -262,7 +262,7 @@ export class ConnectWallet {
         method: "wallet_switchEthereumChain",
         params: [{ chainId: networkConfig.chainIdHex }],
       });
-      this.hideWalletList();
+      this.hideModal();
       this.storage.setItem("connectCurrentChainId", networkConfig.chainIdHex);
       this.updateNetworkStatus(networkConfig.chainIdHex);
       this.render();
@@ -323,13 +323,13 @@ export class ConnectWallet {
     this.render();
   }
 
-  toggleWalletList() {
+  toggleModal() {
     if (this.elements.connectModal) {
       this.elements.connectModal.classList.toggle("show");
     }
   }
 
-  hideWalletList() {
+  hideModal() {
     if (this.elements.connectModal) {
       this.elements.connectModal.classList.remove("show");
     }
@@ -349,7 +349,7 @@ export class ConnectWallet {
 
     this.providers.forEach((provider) => {
       const button = this.createButton(provider.info, () => {
-        this.hideWalletList();
+        this.hideModal();
         this.connectWallet(provider.info.name);
       });
 
