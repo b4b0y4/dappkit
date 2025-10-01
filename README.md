@@ -1,16 +1,15 @@
 # dappkit
 
-Initializer that scaffolds a decentralized application with a connect wallet component, a theme switcher and a clean notification system.
+A minimal dependency starter template for decentralized applications. No build tools required.
 
 ## About
 
-This is a simple command-line tool to bootstrap a new project with a pre-configured template.
+Simple CLI tool to scaffold a dapp with essential UI components:
 
-- **Theme Switcher**: A reusable theme switcher with single-click to toggle between light and dark modes, and a double-click to reset to the system preference.
-- **Notification System**: Modern, non-blocking slide-in notifications (toasts) with duration, a close button, and a progress bar.
-- **Connect Wallet Component**: EIP-6963 compatible wallet connection with multi-network support, persistent state, and ENS integration.
-
-This tool is designed for quick starts without any build tools.
+- **Theme Switcher**: Light/dark mode with system preference support
+- **Notifications**: Toast notifications with transaction tracking
+- **Wallet Connect**: EIP-6963 compatible with multi-network support, ENS resolution, and copy address
+- **Copy**: One-click copy with visual feedback
 
 ## Usage
 
