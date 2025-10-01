@@ -39,9 +39,9 @@ export class ConnectWallet {
   discoverElements() {
     this.elements = {
       connectBtn: document.querySelector("#connect-btn"),
+      connectModal: document.querySelector("#connect-modal"),
       connectChainList: document.querySelector("#connect-chain-list"),
       connectWalletList: document.querySelector("#connect-wallet-list"),
-      connectWallets: document.querySelector("#connect-wallets"),
     };
   }
 
@@ -71,8 +71,8 @@ export class ConnectWallet {
       });
     }
 
-    if (this.elements.connectWalletList) {
-      this.elements.connectWalletList.addEventListener("click", (event) => {
+    if (this.elements.connectModal) {
+      this.elements.connectModal.addEventListener("click", (event) => {
         event.stopPropagation();
       });
     }
@@ -315,8 +315,8 @@ export class ConnectWallet {
       this.elements.connectBtn.classList.remove("connected", "ens-resolved");
     }
 
-    if (this.elements.connectWalletList) {
-      this.elements.connectWalletList.classList.remove("show");
+    if (this.elements.connectModal) {
+      this.elements.connectModal.classList.remove("show");
     }
 
     this.updateNetworkStatus(this.networkConfigs.ethereum.chainIdHex);
@@ -324,14 +324,14 @@ export class ConnectWallet {
   }
 
   toggleWalletList() {
-    if (this.elements.connectWalletList) {
-      this.elements.connectWalletList.classList.toggle("show");
+    if (this.elements.connectModal) {
+      this.elements.connectModal.classList.toggle("show");
     }
   }
 
   hideWalletList() {
-    if (this.elements.connectWalletList) {
-      this.elements.connectWalletList.classList.remove("show");
+    if (this.elements.connectModal) {
+      this.elements.connectModal.classList.remove("show");
     }
   }
 
@@ -342,9 +342,9 @@ export class ConnectWallet {
   }
 
   renderWalletProviders() {
-    if (!this.elements.connectWallets) return;
+    if (!this.elements.connectWalletList) return;
 
-    this.elements.connectWallets.innerHTML = "";
+    this.elements.connectWalletList.innerHTML = "";
     const connectedWallet = this.getLastWallet();
 
     this.providers.forEach((provider) => {
@@ -358,7 +358,7 @@ export class ConnectWallet {
         ? "inline-block"
         : "none";
 
-      this.elements.connectWallets.appendChild(button);
+      this.elements.connectWalletList.appendChild(button);
     });
   }
 

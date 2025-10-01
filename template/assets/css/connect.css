@@ -141,7 +141,7 @@
   }
 }
 
-.connect-wallet-list {
+.connect-modal {
   position: absolute;
   top: 100%;
   right: 0;
@@ -164,7 +164,7 @@
   }
 }
 
-.connect-wallets {
+.connect-wallet-list {
   & button {
     display: flex;
     align-items: center;
