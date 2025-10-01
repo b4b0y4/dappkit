@@ -1,5 +1,6 @@
 import { ethers } from "./libs/ethers.min.js";
 import { networkConfigs } from "./connect-config.js";
+import Copy from "./copy.js";
 
 export class ConnectWallet {
   constructor(options = {}) {
@@ -179,11 +180,34 @@ export class ConnectWallet {
   updateAddress(address) {
     if (this.elements.connectBtn) {
       const short = `${address.substring(0, 5)}...${address.substring(address.length - 4)}`;
-      this.elements.connectBtn.innerHTML = short;
+      this.elements.connectBtn.innerHTML = `
+        <span class="connect-address-text">${short}</span>
+        <span class="connect-copy-icon" title="Copy address">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </span>
+      `;
       this.elements.connectBtn.classList.add("connected");
       this.elements.connectBtn.classList.remove("ens-resolved");
       this.elements.connectBtn.setAttribute("data-address", address);
+      this.setupCopyIcon();
       this.resolveENS(address);
+    }
+  }
+
+  setupCopyIcon() {
+    const copyIcon =
+      this.elements.connectBtn.querySelector(".connect-copy-icon");
+    if (copyIcon) {
+      copyIcon.addEventListener("click", async (event) => {
+        event.stopPropagation();
+        const address = this.elements.connectBtn.getAttribute("data-address");
+        if (address) {
+          await Copy.copyToClipboard(address, copyIcon);
+        }
+      });
     }
   }
 
@@ -202,7 +226,20 @@ export class ConnectWallet {
         address.length - 4,
       )}`;
 
-      let buttonContent = `<div class="ens-details"><div class="ens-name">${ensName}</div><div class="ens-address">${short}</div></div>`;
+      let buttonContent = `
+        <div class="ens-details">
+          <div class="ens-name">${ensName}</div>
+          <div class="ens-address-row">
+            <span class="ens-address">${short}</span>
+            <span class="connect-copy-icon" title="Copy address">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+            </span>
+          </div>
+        </div>
+      `;
       if (ensAvatar) {
         buttonContent += `<img src="${ensAvatar}" style="border-radius: 50%">`;
       }
@@ -210,6 +247,7 @@ export class ConnectWallet {
       this.elements.connectBtn.innerHTML = buttonContent;
       this.elements.connectBtn.classList.add("ens-resolved");
       this.elements.connectBtn.setAttribute("data-address", address);
+      this.setupCopyIcon();
     } catch (error) {
       console.log("ENS resolution failed:", error);
     }
@@ -308,51 +346,6 @@ export class ConnectWallet {
 
     this.elements.connectWallets.innerHTML = "";
     const connectedWallet = this.getLastWallet();
-
-    // Add "Copy Address" button if connected
-    if (
-      this.isConnected() &&
-      this.elements.connectBtn.hasAttribute("data-address")
-    ) {
-      const copyButton = document.createElement("button");
-      copyButton.className = "connect-copy-address-btn";
-      const originalHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-        </svg>
-        Copy Address
-      `;
-      copyButton.innerHTML = originalHTML;
-
-      copyButton.onclick = async (e) => {
-        e.stopPropagation();
-        const address = this.elements.connectBtn.getAttribute("data-address");
-        if (address) {
-          try {
-            await Copy.copy(address);
-
-            // Replace button content with "Copied!"
-            copyButton.innerHTML = `
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              Copied!
-            `;
-            copyButton.classList.add("copied");
-
-            // Restore original content after 2 seconds
-            setTimeout(() => {
-              copyButton.innerHTML = originalHTML;
-              copyButton.classList.remove("copied");
-            }, 2000);
-          } catch (error) {
-            console.error("Copy failed:", error);
-          }
-        }
-      };
-      this.elements.connectWallets.appendChild(copyButton);
-    }
 
     this.providers.forEach((provider) => {
       const button = this.createButton(provider.info, () => {

@@ -68,30 +68,32 @@ export default class Copy {
   static showFeedback(element, success) {
     if (!element) return;
 
+    const svg = element.querySelector("svg");
+    if (!svg) return;
+
+    const originalSvg = svg.outerHTML;
     const originalTitle = element.getAttribute("title");
-    const originalContent = element.innerHTML;
 
-    element.classList.add(success ? "copy-success" : "copy-error");
-    element.setAttribute("title", success ? "Copied!" : "Copy failed");
-
-    // Hide original content and show feedback
-    const contentWrapper = document.createElement("span");
-    contentWrapper.className = "copy-original-content";
-    contentWrapper.innerHTML = originalContent;
-    contentWrapper.style.visibility = "hidden";
-
-    const checkmark = document.createElement("span");
-    checkmark.className = "copy-feedback";
-    checkmark.textContent = success ? "✓ Copied!" : "✗ Failed";
-
-    element.innerHTML = "";
-    element.appendChild(contentWrapper);
-    element.appendChild(checkmark);
+    // Replace with check or X icon
+    if (success) {
+      svg.innerHTML =
+        '<polyline points="20 6 9 17 4 12" stroke="currentColor" stroke-width="2" fill="none"></polyline>';
+      element.classList.add("copy-success");
+      element.setAttribute("title", "Copied!");
+    } else {
+      svg.innerHTML =
+        '<line x1="18" y1="6" x2="6" y2="18" stroke="currentColor" stroke-width="2"></line><line x1="6" y1="6" x2="18" y2="18" stroke="currentColor" stroke-width="2"></line>';
+      element.classList.add("copy-error");
+      element.setAttribute("title", "Copy failed");
+    }
 
     setTimeout(() => {
+      const currentSvg = element.querySelector("svg");
+      if (currentSvg) {
+        currentSvg.outerHTML = originalSvg;
+      }
       element.classList.remove("copy-success", "copy-error");
       element.setAttribute("title", originalTitle || "Click to copy");
-      element.innerHTML = originalContent;
     }, 2000);
   }
 
