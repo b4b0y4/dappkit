@@ -19,32 +19,20 @@
 }
 
 .copy-success {
-  animation: copy-pulse-success 0.6s ease-out;
-}
-
-.copy-success svg {
-  color: rgb(var(--copy-color-success));
+  animation: copy-pulse 0.6s ease-out;
+  & svg {
+    color: rgb(var(--copy-color-success));
+  }
 }
 
 .copy-error {
-  animation: copy-pulse-error 0.6s ease-out;
-}
-
-.copy-error svg {
-  color: rgb(var(--copy-color-error));
-}
-
-@keyframes copy-pulse-success {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
+  animation: copy-pulse 0.6s ease-out;
+  & svg {
+    color: rgb(var(--copy-color-error));
   }
 }
 
-@keyframes copy-pulse-error {
+@keyframes copy-pulse {
   0%,
   100% {
     transform: scale(1);
