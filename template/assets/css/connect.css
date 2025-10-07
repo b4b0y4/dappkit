@@ -47,9 +47,9 @@
   padding: 7.5px 15px;
   border-radius: 10px;
   cursor: pointer;
-  transition: box-shadow 0.3s ease-in-out;
+  transition: background-color 0.3s ease-in-out;
   &:hover {
-    box-shadow: 0 0 0 0.5px var(--connect-color-btn);
+    background-color: var(--connect-color-hvr);
   }
   &.connected {
     padding: 7.5px 15px;
