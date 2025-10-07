@@ -67,6 +67,7 @@ export class ConnectWallet {
   setupUIEvents() {
     if (this.elements.connectBtn) {
       this.elements.connectBtn.addEventListener("click", (event) => {
+        if (event.target.closest("[data-copy]")) return;
         event.stopPropagation();
         this.toggleModal();
       });
