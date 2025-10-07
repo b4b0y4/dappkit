@@ -10,34 +10,18 @@
   transition: opacity 0.2s;
 }
 
-[data-copy]:hover {
+[data-copy] svg:hover {
   opacity: 0.8;
 }
 
-[data-copy]:active {
-  transform: scale(0.95);
+svg {
+  transition: opacity 0.3s ease-in-out;
 }
 
-.copy-success {
-  animation: copy-pulse 0.6s ease-out;
-  & svg {
-    color: rgb(var(--copy-color-success));
-  }
+.copy-success svg {
+  color: rgb(var(--copy-color-success));
 }
 
-.copy-error {
-  animation: copy-pulse 0.6s ease-out;
-  & svg {
-    color: rgb(var(--copy-color-error));
-  }
-}
-
-@keyframes copy-pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+.copy-error svg {
+  color: rgb(var(--copy-color-error));
 }
