@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Initializer that scaffolds a decentralized application with a connect wallet component, a theme switcher and a clean notification system.",
+  "description": "A minimal dependency starter template for decentralized applications. No build tools required.",
   "bin": {
     "dappkit": "init.js"
   },
