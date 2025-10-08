@@ -83,13 +83,11 @@
       /* Demo layout (safe to remove) */
       .demo {
         max-width: 500px;
-        margin: 30vh auto;
+        margin: 10vh auto;
         padding: 24px;
         display: grid;
         gap: 16px;
-        color: var(--color-bg);
-        background-color: var(--color-txt);
-        border-radius: 12px;
+        color: var(--color-txt);
       }
       .row {
         display: flex;
@@ -99,15 +97,16 @@
       }
       .btn {
         color: var(--color-txt);
-        border: 1px solid var(--color-txt);
-        background: var(--color-bg);
+        border: none;
+        background-color: var(--connect-color-btn);
         padding: 8px 12px;
         border-radius: 8px;
         cursor: pointer;
         font: inherit;
-      }
-      .spacer {
-        flex: 1;
+        transition: background-color 0.3s;
+        &:hover {
+          background-color: var(--connect-color-hvr);
+        }
       }
     </style>
   </head>
