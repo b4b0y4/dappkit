@@ -12,19 +12,19 @@ A minimal dependency template for decentralized applications. No build tools req
 ## Quick Start
 
 ```javascript
-import NotificationSystem from './js/notifications.js';
+import Notification from './js/notifications.js';
 import { ConnectWallet } from './js/connect.js';
 import Copy from './js/copy.js';
 
 const wallet = new ConnectWallet();
 
 wallet.onConnect((data) => {
-  NotificationSystem.show('Connected!', 'success');
+  Notification.show('Connected!', 'success');
 });
 
 wallet.onChainChange(({ chainId, allowed }) => {
   if (!allowed) {
-    NotificationSystem.show(
+    Notification.show(
       `Chain ${chainId} is not supported`,
       'danger'
     );
@@ -38,10 +38,10 @@ wallet.onChainChange(({ chainId, allowed }) => {
 
 ```javascript
 // Basic
-NotificationSystem.show('Message', 'success'); // success, info, warning, danger
+Notification.show('Message', 'success'); // success, info, warning, danger
 
 // Options
-NotificationSystem.show('Message', 'info', {
+Notification.show('Message', 'info', {
   duration: 5000,      // ms (0 = never hide)
   closable: true,      // show X button
   showProgress: true,  // show progress bar
@@ -49,15 +49,15 @@ NotificationSystem.show('Message', 'info', {
 });
 
 // Track transactions
-NotificationSystem.track(txHash, chainId, rpcUrl, {
+Notification.track(txHash, chainId, rpcUrl, {
   label: 'Swap Tokens',
   onSuccess: (receipt) => console.log('Done!'),
   onError: (error) => console.error('Failed!')
 });
 
 // Clear
-NotificationSystem.clearAll();
-NotificationSystem.clearTransactions();
+Notification.clearAll();
+Notification.clearTransactions();
 ```
 
 ### Wallet Connection
@@ -98,18 +98,18 @@ await Copy.copyToClipboard('Text', element);
 ## Complete Example
 
 ```javascript
-import NotificationSystem from './js/notifications.js';
+import Notification from './js/notifications.js';
 import { ConnectWallet } from './js/connect.js';
 
 const wallet = new ConnectWallet();
 
 wallet.onConnect(() => {
-  NotificationSystem.show('Connected!', 'success');
+  Notification.show('Connected!', 'success');
 });
 
 wallet.onChainChange(({ chainId, allowed }) => {
   if (!allowed) {
-    NotificationSystem.show(
+    Notification.show(
       `Chain ${chainId} is not supported`,
       'danger'
     );
@@ -132,11 +132,11 @@ async function sendETH(to, amount) {
       n => n.chainId === chainId
     )?.rpcUrl;
 
-    NotificationSystem.track(tx.hash, chainId, rpcUrl, {
+    Notification.track(tx.hash, chainId, rpcUrl, {
       label: `Send ${amount} ETH`
     });
   } catch (error) {
-    NotificationSystem.show(error.message, 'danger');
+    Notification.show(error.message, 'danger');
   }
 }
 ```

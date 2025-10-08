@@ -1,7 +1,7 @@
 import { ethers } from "./libs/ethers.min.js";
 import { networkConfigs } from "./connect-config.js";
 
-export default class NotificationSystem {
+export default class Notification {
   static container = null;
   static notifications = new Map();
   static transactions = new Map();
