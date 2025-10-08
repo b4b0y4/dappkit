@@ -73,7 +73,7 @@ wallet.onChainChange(({ chainId, name, allowed }) => {});
 // API
 wallet.isConnected();              // boolean
 await wallet.getAccount();         // address or null
-await wallet.getChainId();         // hex string
+await wallet.getChainId();         // numeric id
 wallet.getProvider();              // EIP-1193 provider
 wallet.getEthersProvider();        // ethers BrowserProvider
 await wallet.disconnect();
@@ -121,7 +121,7 @@ async function sendETH(to, amount) {
   try {
     const provider = wallet.getEthersProvider();
     const signer = await provider.getSigner();
-    
+
     const tx = await signer.sendTransaction({
       to,
       value: ethers.parseEther(amount)
@@ -129,10 +129,10 @@ async function sendETH(to, amount) {
 
     const chainId = await wallet.getChainId();
     const rpcUrl = Object.values(wallet.networkConfigs).find(
-      n => n.chainId === parseInt(chainId, 16)
+      n => n.chainId === chainId
     )?.rpcUrl;
 
-    NotificationSystem.track(tx.hash, parseInt(chainId, 16), rpcUrl, {
+    NotificationSystem.track(tx.hash, chainId, rpcUrl, {
       label: `Send ${amount} ETH`
     });
   } catch (error) {

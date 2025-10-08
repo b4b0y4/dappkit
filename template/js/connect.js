@@ -427,7 +427,8 @@ export class ConnectWallet {
     if (!provider) return null;
 
     try {
-      return await provider.request({ method: "eth_chainId" });
+      const raw = await provider.request({ method: "eth_chainId" });
+      return this.normalizeChainId(raw);
     } catch (error) {
       console.error("Failed to get chain ID:", error);
       return null;
