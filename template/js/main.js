@@ -50,7 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const provider = wallet.getEthersProvider();
       const signer = await provider.getSigner();
-      const chainId = await wallet.getChainId();
+      const chainIdRaw = await wallet.getChainId();
+      const chainId = wallet.normalizeChainId(chainIdRaw);
 
       // Demo transaction (send 0 ETH to self)
       const account = await wallet.getAccount();
@@ -60,10 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       const rpcUrl = Object.values(wallet.networkConfigs).find(
-        (n) => n.chainIdHex === chainId,
+        (n) => n.chainId === chainId || n.chainIdHex === chainIdRaw,
       )?.rpcUrl;
 
-      NotificationSystem.track(tx.hash, parseInt(chainId, 16), rpcUrl, {
+      NotificationSystem.track(tx.hash, chainId, rpcUrl, {
         label: "Demo Transaction",
       });
     } catch (error) {
