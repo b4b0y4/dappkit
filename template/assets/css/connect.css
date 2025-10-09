@@ -208,7 +208,7 @@
 .connect-chain-list {
   display: flex;
   align-items: center;
-  justify-content: space-evenly;
+  justify-content: space-around;
   padding: 7.5px;
   background-color: var(--connect-color-btn);
   max-width: 100%;
