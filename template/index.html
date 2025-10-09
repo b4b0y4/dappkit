@@ -81,6 +81,13 @@
         padding: 20px;
       }
       /* Demo layout (safe to remove) */
+      .wrapper {
+        display: flex;
+        justify-content: end;
+        align-items: center;
+        width: 100%;
+        gap: 10px;
+      }
       .demo {
         max-width: 500px;
         margin: 10vh auto;
@@ -112,7 +119,7 @@
   </head>
   <body>
     <!-- Connect Widget -->
-    <div class="connect-wrapper">
+    <div class="wrapper">
       <!-- Theme Button -->
       <button id="theme-btn" aria-label="Toggle theme" title="theme">
         <svg
