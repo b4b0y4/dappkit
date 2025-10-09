@@ -9,6 +9,7 @@ Simple CLI tool to scaffold a dapp with essential UI components:
 - **Theme Switcher**: Light/dark mode with system preference support
 - **Notifications**: Toast notifications with transaction tracking
 - **Wallet Connect**: EIP-6963 compatible with multi-network support, ENS resolution, and copy address
+- **RPC Modal**: View, add, and manage custom RPC URLs
 - **Copy**: One-click copy with visual feedback
 
 ## Usage
