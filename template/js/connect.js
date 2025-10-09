@@ -104,7 +104,7 @@ export class ConnectWallet {
 
   createButton(config, onClick) {
     const button = document.createElement("button");
-    button.innerHTML = `<img src="${config.icon}">${config.name}<span class="connect-indicator" style="display: none"></span>`;
+    button.innerHTML = `<img src="${config.icon}">${config.name}<span class="connect-dot" style="display: none"></span>`;
     button.onclick = onClick;
     return button;
   }
@@ -330,7 +330,7 @@ export class ConnectWallet {
       });
 
       const isConnected = provider.info.name === connectedWallet;
-      button.querySelector(".connect-indicator").style.display = isConnected
+      button.querySelector(".connect-dot").style.display = isConnected
         ? "inline-block"
         : "none";
 
@@ -345,25 +345,44 @@ export class ConnectWallet {
     const currentChainId = this.getCurrentChainId();
     const isConnected = this.isConnected();
 
-    Object.entries(this.networkConfigs)
-      .filter(([, config]) => config.showInUI)
-      .forEach(([networkName, networkConfig]) => {
-        const button = document.createElement("button");
-        button.id = `connect-${networkName}`;
-        button.title = networkConfig.name;
+    const networksToShow = Object.entries(this.networkConfigs).filter(
+      ([, config]) => config.showInUI,
+    );
+
+    const isSingleNetwork = networksToShow.length === 1;
+
+    this.elements.connectChainList.classList.toggle(
+      "single-network",
+      isSingleNetwork,
+    );
+
+    networksToShow.forEach(([networkName, networkConfig]) => {
+      const button = document.createElement("button");
+      button.id = `connect-${networkName}`;
+      button.title = networkConfig.name;
+
+      if (isSingleNetwork) {
+        button.classList.add("chain-single");
+        button.innerHTML = `<img src="${networkConfig.icon}" alt="${networkConfig.name}"><span class="connect-name">${networkConfig.name}</span><span class="connect-dot" style="display: none"></span>`;
+      } else {
         button.innerHTML = `<img src="${networkConfig.icon}" alt="${networkConfig.name}">`;
-        button.onclick = () => this.switchNetwork(networkConfig);
+      }
 
-        const indicator = document.createElement("span");
-        indicator.className = "connect-indicator";
-        indicator.style.display =
-          isConnected && networkConfig.chainIdHex === currentChainId
-            ? "inline-block"
-            : "none";
+      button.onclick = () => this.switchNetwork(networkConfig);
 
-        button.appendChild(indicator);
-        this.elements.connectChainList.appendChild(button);
-      });
+      const indicator = document.createElement("span");
+      indicator.className = isSingleNetwork
+        ? "connect-dot"
+        : "connect-dot-icon";
+      button.appendChild(indicator);
+
+      indicator.style.display =
+        isConnected && networkConfig.chainIdHex === currentChainId
+          ? "inline-block"
+          : "none";
+
+      this.elements.connectChainList.appendChild(button);
+    });
   }
 
   renderGetWallet() {
