@@ -1,6 +1,7 @@
 import Notification from "./notifications.js";
 import { ConnectWallet } from "./connect.js";
 import Copy from "./copy.js";
+import { getRpcUrl } from "./rpcModal.js";
 
 const wallet = new ConnectWallet();
 
@@ -59,9 +60,11 @@ document.addEventListener("DOMContentLoaded", () => {
         value: 0,
       });
 
-      const rpcUrl = Object.values(wallet.networkConfigs).find(
-        (n) => n.chainId === chainId,
-      )?.rpcUrl;
+      const rpcUrl = getRpcUrl(
+        Object.keys(wallet.networkConfigs).find(
+          (n) => wallet.networkConfigs[n].chainId === chainId,
+        ),
+      );
 
       Notification.track(tx.hash, chainId, rpcUrl, {
         label: "Demo Transaction",

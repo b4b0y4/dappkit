@@ -1,6 +1,7 @@
 import { ethers } from "./libs/ethers.min.js";
 import { networkConfigs } from "./connect-config.js";
 import Copy from "./copy.js";
+import { getRpcUrl } from "./rpcModal.js";
 
 export class ConnectWallet {
   constructor(options = {}) {
@@ -197,9 +198,7 @@ export class ConnectWallet {
     if (!this.elements.connectBtn) return;
 
     try {
-      const mainnetProvider = new ethers.JsonRpcProvider(
-        this.networkConfigs.ethereum.rpcUrl,
-      );
+      const mainnetProvider = new ethers.JsonRpcProvider(getRpcUrl("ethereum"));
       const ensName = await mainnetProvider.lookupAddress(address);
       if (!ensName) return;
 
