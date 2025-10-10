@@ -84,6 +84,7 @@
 
 #rpc-inputs input {
   padding: 8px 12px;
+  max-width: 100%;
   border: 1px solid var(--connect-color-btn);
   border-radius: 6px;
   background-color: var(--color-bg);
