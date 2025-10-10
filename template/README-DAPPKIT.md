@@ -7,6 +7,7 @@ A minimal dependency template for decentralized applications. No build tools req
 - **Theme Switcher**: Light/dark mode with system preference
 - **Notifications**: Toast notifications with transaction tracking
 - **Wallet Connect**: EIP-6963 compatible with multi-network support
+- **RPC Modal**: View, add, and manage custom RPC URLs
 - **Copy**: One-click copy with visual feedback
 
 ## Quick Start
@@ -15,6 +16,7 @@ A minimal dependency template for decentralized applications. No build tools req
 import Notification from './js/notifications.js';
 import { ConnectWallet } from './js/connect.js';
 import Copy from './js/copy.js';
+import { getRpcUrl } from './js/rpcmodal.js';
 
 const wallet = new ConnectWallet();
 
@@ -79,6 +81,18 @@ wallet.getEthersProvider();        // ethers BrowserProvider
 await wallet.disconnect();
 ```
 
+### RPC Modal
+
+```javascript
+import { getRpcUrl } from './js/rpcmodal.js';
+
+// Get RPC URL (custom or default)
+const rpcUrl = getRpcUrl('ethereum');
+
+// Modal opens automatically via settings button
+// Custom URLs saved to localStorage
+```
+
 ### Copy to Clipboard
 
 ```html
@@ -100,6 +114,7 @@ await Copy.copyToClipboard('Text', element);
 ```javascript
 import Notification from './js/notifications.js';
 import { ConnectWallet } from './js/connect.js';
+import { getRpcUrl } from './js/rpcmodal.js';
 
 const wallet = new ConnectWallet();
 
@@ -128,9 +143,10 @@ async function sendETH(to, amount) {
     });
 
     const chainId = await wallet.getChainId();
-    const rpcUrl = Object.values(wallet.networkConfigs).find(
-      n => n.chainId === chainId
-    )?.rpcUrl;
+    const network = Object.keys(wallet.networkConfigs).find(
+      key => wallet.networkConfigs[key].chainId === chainId
+    );
+    const rpcUrl = getRpcUrl(network);
 
     Notification.track(tx.hash, chainId, rpcUrl, {
       label: `Send ${amount} ETH`
@@ -148,6 +164,7 @@ async function sendETH(to, amount) {
 <link rel="stylesheet" href="./assets/css/theme.css" />
 <link rel="stylesheet" href="./assets/css/notifications.css" />
 <link rel="stylesheet" href="./assets/css/connect.css" />
+<link rel="stylesheet" href="./assets/css/rpcmodal.css" />
 <link rel="stylesheet" href="./assets/css/copy.css" />
 
 <!-- Containers (auto-inject if missing) -->
@@ -166,6 +183,24 @@ async function sendETH(to, amount) {
     </div>
   </div>
 </div>
+
+<!-- RPC Modal -->
+<div id="rpc-modal" class="rpc-modal">
+  <div class="rpc-modal-content">
+    <span class="rpc-close-btn">&times;</span>
+    <h2>RPC Settings</h2>
+    <div id="rpc-inputs"></div>
+    <button id="save-rpc-btn">Save</button>
+  </div>
+</div>
+
+<!-- Settings Button -->
+<button id="settings-btn" aria-label="RPC Settings">
+  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.33">
+    <circle cx="8" cy="8" r="2" />
+    <path d="M8 1v2M8 13v2M13.66 4.34l-1.41 1.41M3.76 11.24l-1.41 1.41M15 8h-2M3 8H1M13.66 11.66l-1.41-1.41M3.76 4.76L2.34 3.34" />
+  </svg>
+</button>
 
 <!-- Theme Button -->
 <button id="theme-btn" aria-label="Toggle theme">
@@ -221,6 +256,7 @@ async function sendETH(to, amount) {
 
 <!-- Scripts -->
 <script src="./js/theme.js" defer></script>
+<script type="module" src="./js/rpcmodal.js"></script>
 <script type="module" src="./js/main.js"></script>
 ```
 
