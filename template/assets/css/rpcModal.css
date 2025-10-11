@@ -93,7 +93,7 @@
 
 #rpc-inputs input:focus {
   outline: none;
-  border-color: rgb(var(--connect-dot));
+  border-color: var(--connect-color-hvr);
 }
 
 #save-rpc-btn {

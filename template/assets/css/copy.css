@@ -1,8 +1,3 @@
-:root {
-  --copy-color-success: 46, 204, 113;
-  --copy-color-error: 234, 51, 35;
-}
-
 [data-copy] {
   position: relative;
   cursor: pointer;
@@ -14,13 +9,6 @@
 }
 
 svg {
-  transition: opacity 0.2s;
-}
-
-.copy-success svg {
-  color: rgb(var(--copy-color-success));
-}
-
-.copy-error svg {
-  color: rgb(var(--copy-color-error));
+  opacity: 0.6;
+  transition: opacity 0.3s;
 }
