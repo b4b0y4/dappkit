@@ -13,6 +13,8 @@ A minimal dependency template for decentralized applications. No build tools req
 ## Quick Start
 
 ```javascript
+import { ethers } from "./libs/ethers.min.js";
+import { networkConfigs } from "./networkConfigs.js";
 import Notification from './js/notifications.js';
 import { ConnectWallet } from './js/connect.js';
 import Copy from './js/copy.js';
