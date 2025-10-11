@@ -1,4 +1,4 @@
-import { networkConfigs } from "./connect-config.js";
+import { networkConfigs } from "./networkConfigs.js";
 
 const rpcModal = document.getElementById("rpc-modal");
 const settingsBtn = document.getElementById("settings-btn");
