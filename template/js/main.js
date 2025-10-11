@@ -1,3 +1,5 @@
+import { ethers } from "./libs/ethers.min.js";
+import { networkConfigs } from "./networkConfigs.js";
 import Notification from "./notifications.js";
 import { ConnectWallet } from "./connect.js";
 import Copy from "./copy.js";

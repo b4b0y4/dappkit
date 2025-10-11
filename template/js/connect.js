@@ -1,5 +1,5 @@
 import { ethers } from "./libs/ethers.min.js";
-import { networkConfigs } from "./connect-config.js";
+import { networkConfigs } from "./networkConfigs.js";
 import Copy from "./copy.js";
 import { getRpcUrl } from "./rpcModal.js";
 
