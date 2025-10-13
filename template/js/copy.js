@@ -29,6 +29,7 @@ export default class Copy {
       if (this.elements.has(el)) return;
       Object.assign(el.style, {
         cursor: "pointer",
+        gap: "8px",
         display: "inline-flex",
         alignItems: "center",
       });
