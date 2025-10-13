@@ -86,7 +86,7 @@
 
 #rpc-inputs label {
   font-weight: 500;
-  font-size: 14px;
+  font-size: 1.1em;
 }
 
 #rpc-inputs input {
@@ -111,7 +111,7 @@
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 1.1em;
   font-weight: 500;
   transition: background-color 0.3s;
   &:hover {
