@@ -2,13 +2,28 @@
   position: relative;
   cursor: pointer;
   user-select: none;
+  gap: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+
+[data-copy] svg {
+  opacity: 0.6;
+  transition:
+    opacity 0.3s,
+    stroke 0.2s ease;
 }
 
 [data-copy] svg:hover {
   opacity: 0.8;
 }
 
-svg {
-  opacity: 0.6;
-  transition: opacity 0.3s;
+.copy-success svg {
+  stroke: #22c55e;
+  opacity: 1;
+}
+
+.copy-error svg {
+  stroke: #ef4444;
+  opacity: 1;
 }
