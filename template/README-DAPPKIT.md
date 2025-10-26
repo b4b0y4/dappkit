@@ -13,10 +13,11 @@ A minimal dependency template for decentralized applications. No build tools req
 ## Quick Start
 
 ```javascript
-import Notification from './js/notifications.js';
-import { ConnectWallet } from './js/connect.js';
-import Copy from './js/copy.js';
-import { getRpcUrl } from './js/rpcmodal.js';
+import {
+  ConnectWallet,
+  Notification,
+  getRpcUrl,
+} from "./dappkit.js";
 
 const wallet = new ConnectWallet();
 
@@ -84,8 +85,6 @@ await wallet.disconnect();
 ### RPC Modal
 
 ```javascript
-import { getRpcUrl } from './js/rpcmodal.js';
-
 // Get RPC URL (custom or default)
 const rpcUrl = getRpcUrl('ethereum');
 
@@ -112,9 +111,11 @@ await Copy.copyToClipboard('Text', element);
 ## Complete Example
 
 ```javascript
-import Notification from './js/notifications.js';
-import { ConnectWallet } from './js/connect.js';
-import { getRpcUrl } from './js/rpcmodal.js';
+import {
+  ConnectWallet,
+  Notification,
+  getRpcUrl,
+} from "./dappkit.js";
 
 const wallet = new ConnectWallet();
 
@@ -248,16 +249,53 @@ async function sendETH(to, amount) {
 </button>
 
 <!-- Scripts -->
-<script src="./js/theme.js" defer></script>
-<script type="module" src="./js/rpcmodal.js"></script>
+<script>
+  // theme.js
+  const themeManager = {
+    themes: ["light", "dark"],
+    sys: () => (matchMedia("(prefers-color-scheme: dark)").matches ? 1 : 0),
+    cur() {
+      return localStorage.themeOverride
+        ? this.themes.indexOf(localStorage.themeOverride)
+        : this.sys();
+    },
+    apply() {
+      let o = localStorage.themeOverride,
+        t = this.themes[this.cur()];
+      Object.assign(document.documentElement.dataset, {
+        theme: t,
+        themeSource: o ? "manual" : "system",
+        selectedTheme: o ? t : "",
+      });
+    },
+    cycle() {
+      localStorage.themeOverride = this.themes[(this.cur() + 1) % 2];
+      this.apply();
+    },
+    reset() {
+      localStorage.removeItem("themeOverride");
+      this.apply();
+    },
+  };
+  document.addEventListener("DOMContentLoaded", () => {
+    let btn = document.getElementById("theme-btn");
+    if (btn) {
+      btn.onclick = () => themeManager.cycle();
+      btn.ondblclick = (e) => (e.preventDefault(), themeManager.reset());
+    }
+    matchMedia("(prefers-color-scheme: dark)").addEventListener(
+      "change",
+      () => !localStorage.themeOverride && themeManager.apply(),
+    );
+    themeManager.apply();
+  });
+</script>
 <script type="module" src="./js/main.js"></script>
 ```
 
 ## Configuration
 
 ### Networks
-
-Edit `connect-config.js`:
 
 ```javascript
 export const networkConfigs = {
