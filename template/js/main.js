@@ -49,7 +49,6 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const provider = wallet.getEthersProvider();
       const signer = await provider.getSigner();
-      const chainId = await wallet.getChainId();
 
       // Demo transaction (send 0 ETH to self)
       const account = await wallet.getAccount();
@@ -58,13 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
         value: 0,
       });
 
-      const rpcUrl = getRpcUrl(
-        Object.keys(wallet.networkConfigs).find(
-          (n) => wallet.networkConfigs[n].chainId === chainId,
-        ),
-      );
-
-      Notification.track(tx.hash, chainId, rpcUrl, {
+      Notification.track(tx, {
         label: "Demo Transaction",
       });
     } catch (error) {
