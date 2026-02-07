@@ -1,5 +1,5 @@
 import { ethers } from "./libs/ethers.min.js";
-import { ConnectWallet, Notification, getRpcUrl } from "./dappkit.js";
+import { ConnectWallet, Notification, getRpcUrl } from "./libs/dappkit.js";
 
 const wallet = new ConnectWallet();
 

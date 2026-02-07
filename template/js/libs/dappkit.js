@@ -1,4 +1,4 @@
-import { ethers } from "./libs/ethers.min.js";
+import { ethers } from "./ethers.min.js";
 
 // START networkConfigs.js
 export const networkConfigs = {
