@@ -20,6 +20,11 @@
   --connect-shadow: 0 0 0 0.5px color-mix(in srgb, white 15%, transparent);
 }
 
+button,
+input {
+  font-family: inherit;
+}
+
 .connect-widget {
   position: relative;
   user-select: none;
