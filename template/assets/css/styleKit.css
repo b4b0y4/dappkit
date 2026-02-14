@@ -1,5 +1,9 @@
-/* Connect */
+/* ============================================================
+   CSS VARIABLES
+   ========================================================= */
+
 :root {
+  /* Connect Widget Colors */
   --connect-color-btn: color-mix(in srgb, var(--color-bg) 92%, black 8%);
   --connect-color-hvr: color-mix(
     in srgb,
@@ -8,6 +12,12 @@
   );
   --connect-shadow: 0 0 0 1px color-mix(in srgb, black 10%, transparent);
   --connect-dot: 46, 204, 113;
+
+  /* Notification Colors */
+  --color-blue: 75, 186, 231;
+  --color-green: 46, 204, 113;
+  --color-orange: 255, 165, 0;
+  --color-red: 234, 51, 35;
 }
 
 [data-theme="dark"] {
@@ -20,6 +30,10 @@
   --connect-shadow: 0 0 0 0.5px color-mix(in srgb, white 15%, transparent);
 }
 
+/* ============================================================
+   GLOBAL RESETS
+   ========================================================= */
+
 * {
   margin: 0;
   padding: 0;
@@ -31,69 +45,82 @@ input {
   font-family: inherit;
 }
 
+/* ============================================================
+   WALLET CONNECTION
+   ========================================================= */
+
 .connect-widget {
   position: relative;
-  user-select: none;
-  z-index: 100;
   display: flex;
   align-items: center;
   gap: 5px;
+  user-select: none;
+  z-index: 100;
 }
 
 .connect-btn {
   display: flex;
   align-items: center;
+  height: 40px;
+  padding: 7.5px 15px;
   font-size: 1.1em;
   color: var(--color-txt);
   background: var(--connect-color-btn);
   border: none;
-  height: 40px;
-  padding: 7.5px 15px;
   border-radius: 10px;
   cursor: pointer;
   transition: background-color 0.3s ease;
-  &:hover {
-    background-color: var(--connect-color-hvr);
-  }
-  &.connected {
-    padding: 7.5px 15px;
-    gap: 8px;
-  }
-  &.ens-resolved {
-    flex-direction: row-reverse;
-    justify-content: space-between;
-    gap: 8px;
-    height: auto;
-    padding: 5px 10px;
-    & img {
-      margin-right: 0;
-    }
-  }
-  & .ens-details {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  & .ens-name {
-    display: flex;
-    align-items: center;
-    font-size: 0.9em;
-  }
-  & .ens-address-row {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-  & .ens-address {
-    font-size: 0.6em;
-    opacity: 0.7;
-  }
-  & img {
-    width: 28px;
-    height: 28px;
-    margin-right: 5px;
-    border: 1px solid var(--color-bg);
-  }
+}
+
+.connect-btn:hover {
+  background-color: var(--connect-color-hvr);
+}
+
+.connect-btn.connected {
+  padding: 7.5px 15px;
+  gap: 8px;
+}
+
+.connect-btn.ens-resolved {
+  flex-direction: row-reverse;
+  justify-content: space-between;
+  gap: 8px;
+  height: auto;
+  padding: 5px 10px;
+}
+
+.connect-btn.ens-resolved img {
+  margin-right: 0;
+}
+
+.connect-btn img {
+  width: 28px;
+  height: 28px;
+  margin-right: 5px;
+  border: 1px solid var(--color-bg);
+}
+
+.ens-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.ens-name {
+  display: flex;
+  align-items: center;
+  font-size: 0.9em;
+}
+
+.ens-address-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ens-address {
+  font-size: 0.6em;
+  opacity: 0.7;
 }
 
 .connect-address-text {
@@ -109,20 +136,22 @@ input {
   height: 18px;
   border-radius: 4px;
   flex-shrink: 0;
-  & svg {
-    display: block;
-    width: 14px;
-    height: 14px;
-  }
+}
+
+.connect-copy-icon svg {
+  display: block;
+  width: 14px;
+  height: 14px;
 }
 
 .ens-address-row .connect-copy-icon {
   width: 10px;
   height: 10px;
-  & svg {
-    width: 8px;
-    height: 8px;
-  }
+}
+
+.ens-address-row .connect-copy-icon svg {
+  width: 8px;
+  height: 8px;
 }
 
 .connect-modal {
@@ -131,9 +160,9 @@ input {
   right: 0;
   margin-top: 10px;
   min-width: 180px;
+  padding: 5px;
   background-color: var(--color-bg);
   box-shadow: var(--connect-shadow);
-  padding: 5px;
   border-radius: 15px;
   opacity: 0;
   transform: scale(0.9);
@@ -141,132 +170,153 @@ input {
   transition:
     opacity 0.3s ease,
     transform 0.3s ease;
-  &.show {
-    pointer-events: auto;
-    opacity: 1;
-    transform: scale(1);
-  }
 }
 
-.connect-get-wallet {
-  display: flex;
-  align-items: center;
-  font-size: 1em;
-  border: none;
-  color: var(--color-txt);
-  background-color: var(--connect-color-btn);
-  width: 100%;
-  height: 50px;
-  margin: 2.5px 0;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  border-radius: 0 0 15px 15px;
-  margin-bottom: 0;
-  &:hover {
-    background-color: var(--connect-color-hvr);
-  }
-  & a {
-    text-decoration: none;
-    color: var(--color-txt);
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-.connect-wallet-list {
-  & button {
-    position: relative;
-    display: flex;
-    align-items: center;
-    font-size: 1em;
-    border: none;
-    color: var(--color-txt);
-    background-color: var(--connect-color-btn);
-    width: 100%;
-    height: 50px;
-    padding: 7.5px 40px 7.5px 7.5px;
-    margin: 2.5px 0;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    &:hover {
-      background-color: var(--connect-color-hvr);
-    }
-    &:last-child {
-      border-radius: 0 0 15px 15px;
-      margin-bottom: 0;
-    }
-    & img {
-      height: 32px;
-      width: 32px;
-      margin-right: 8px;
-      border-radius: 5px;
-    }
-  }
+.connect-modal.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
 }
 
 .connect-chain-list {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding: 7.5px;
-  background-color: var(--connect-color-btn);
   max-width: 100%;
   height: 50px;
-  box-sizing: border-box;
+  padding: 7.5px;
   margin: 0;
+  background-color: var(--connect-color-btn);
   border-radius: 15px 15px 0 0;
+  box-sizing: border-box;
   transition: background-color 0.3s ease;
-  &:hover {
-    background-color: var(--connect-color-hvr);
-  }
-  & button {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background-color: transparent;
-    border: none;
-    padding: 0;
-    margin: 0;
-    cursor: pointer;
-    font-size: 1em;
-    color: var(--color-txt);
-    & img {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      border: 1px solid var(--color-bg);
-      flex-shrink: 0;
-      transition: transform 0.3s ease;
-      &:hover {
-        transform: scale(1.1);
-      }
-    }
-    &.chain-single {
-      display: flex;
-      flex: 1;
-      justify-content: flex-start;
-      & img {
-        width: 32px;
-        height: 32px;
-        margin-right: 8px;
-      }
-      & .connect-name {
-        flex: 1;
-        text-align: left;
-        white-space: nowrap;
-        overflow: hidden;
-      }
-      & .connect-dot {
-        position: absolute;
-        right: 7.5px;
-      }
-    }
-  }
+}
+
+.connect-chain-list:hover {
+  background-color: var(--connect-color-hvr);
+}
+
+.connect-chain-list button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin: 0;
+  font-size: 1em;
+  color: var(--color-txt);
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.connect-chain-list button img {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-bg);
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+
+.connect-chain-list button img:hover {
+  transform: scale(1.1);
+}
+
+.connect-chain-list button.chain-single {
+  display: flex;
+  flex: 1;
+  justify-content: flex-start;
+}
+
+.connect-chain-list button.chain-single img {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+}
+
+.connect-chain-list button.chain-single .connect-name {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.connect-chain-list button.chain-single .connect-dot {
+  position: absolute;
+  right: 7.5px;
+}
+
+.connect-wallet-list button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  padding: 7.5px 40px 7.5px 7.5px;
+  margin: 2.5px 0;
+  font-size: 1em;
+  color: var(--color-txt);
+  background-color: var(--connect-color-btn);
+  border: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.connect-wallet-list button:hover {
+  background-color: var(--connect-color-hvr);
+}
+
+.connect-wallet-list button:last-child {
+  margin-bottom: 0;
+  border-radius: 0 0 15px 15px;
+}
+
+.connect-wallet-list button img {
+  width: 32px;
+  height: 32px;
+  margin-right: 8px;
+  border-radius: 5px;
+}
+
+.connect-get-wallet {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  margin: 2.5px 0 0 0;
+  font-size: 1em;
+  color: var(--color-txt);
+  background-color: var(--connect-color-btn);
+  border: none;
+  border-radius: 0 0 15px 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.connect-get-wallet:hover {
+  background-color: var(--connect-color-hvr);
+}
+
+.connect-get-wallet a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--color-txt);
+  text-decoration: none;
+}
+
+.connect-dot {
+  position: absolute;
+  right: 15px;
+  width: 10px;
+  height: 10px;
+  background-color: rgb(var(--connect-dot));
+  border-radius: 50%;
+  animation: connect-pulse 1.5s ease-out infinite;
 }
 
 .connect-dot-icon {
@@ -275,19 +325,9 @@ input {
   right: -2px;
   width: 10px;
   height: 10px;
-  border-radius: 50%;
   background-color: rgb(var(--connect-dot));
   border: 1px solid var(--color-bg);
-}
-
-.connect-dot {
-  position: absolute;
-  right: 15px;
-  width: 10px;
-  height: 10px;
   border-radius: 50%;
-  background-color: rgb(var(--connect-dot));
-  animation: connect-pulse 1.5s ease-out infinite;
 }
 
 @keyframes connect-pulse {
@@ -302,14 +342,153 @@ input {
   }
 }
 
-/* Copy */
+/* ============================================================
+   RPC MODAL
+   ========================================================= */
+
+#connect-rpc {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 50px;
+  padding: 7.5px 40px 7.5px 7.5px;
+  margin: 2.5px 0 0 0;
+  font-size: 1em;
+  color: var(--color-txt);
+  background-color: var(--connect-color-btn);
+  border: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+#connect-rpc:hover {
+  background-color: var(--connect-color-hvr);
+}
+
+#connect-rpc svg {
+  width: 28px;
+  height: 28px;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.rpc-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  pointer-events: none;
+  overflow: auto;
+  transition: opacity 0.3s ease;
+}
+
+.rpc-modal.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.rpc-modal-content {
+  width: 90%;
+  max-width: 500px;
+  padding: 20px;
+  color: var(--color-txt);
+  background-color: var(--color-bg);
+  border-radius: 15px;
+  box-shadow: var(--connect-shadow);
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+
+.rpc-modal.show .rpc-modal-content {
+  transform: scale(1);
+}
+
+.rpc-close-btn {
+  float: right;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 2.5px 5.5px 6px;
+  font-size: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.rpc-close-btn:hover {
+  background-color: var(--connect-color-btn);
+}
+
+#rpc-inputs {
+  display: grid;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+#rpc-inputs div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+#rpc-inputs label {
+  font-size: 1em;
+  font-weight: 500;
+}
+
+#rpc-inputs input {
+  padding: 7.5px 15px;
+  font-size: 1em;
+  color: var(--color-txt);
+  background-color: var(--color-bg);
+  border: 1px solid var(--connect-color-btn);
+  border-radius: 6px;
+}
+
+#rpc-inputs input:focus {
+  outline: none;
+  border-color: var(--connect-color-hvr);
+}
+
+#save-rpc-btn {
+  width: 100%;
+  padding: 10px;
+  font-size: 1.1em;
+  font-weight: 500;
+  color: var(--color-txt);
+  background-color: var(--connect-color-btn);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+#save-rpc-btn:hover {
+  background-color: var(--connect-color-hvr);
+}
+
+/* ============================================================
+   UTILITIES
+   ========================================================= */
+
 [data-copy] {
   position: relative;
-  cursor: pointer;
-  user-select: none;
-  gap: 8px;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
 }
 
 [data-copy] svg {
@@ -333,13 +512,9 @@ input {
   opacity: 1;
 }
 
-/* Notification */
-:root {
-  --color-blue: 75, 186, 231;
-  --color-green: 46, 204, 113;
-  --color-orange: 255, 165, 0;
-  --color-red: 234, 51, 35;
-}
+/* ============================================================
+   NOTIFICATIONS
+   ========================================================= */
 
 #notificationContainer {
   position: fixed;
@@ -347,100 +522,85 @@ input {
   left: 20px;
   z-index: 1000;
   max-width: 500px;
-  pointer-events: none;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  pointer-events: none;
 }
 
 .notification {
   position: relative;
-  transform: translateX(-100%);
+  max-width: 100%;
   opacity: 0;
+  transform: translateX(-100%);
   transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   pointer-events: auto;
-  max-width: 100%;
-  &.show {
-    transform: translateX(0);
-    opacity: 1;
-  }
-  &.hide {
-    transform: translateX(-100%);
-    opacity: 0;
-  }
-  &.info,
-  &.tx-notification.pending {
-    --notif-color: var(--color-blue);
-  }
-  &.success,
-  &.tx-notification.success {
-    --notif-color: var(--color-green);
-  }
-  &.warning {
-    --notif-color: var(--color-orange);
-  }
-  &.danger,
-  &.tx-notification.failed {
-    --notif-color: var(--color-red);
-  }
+}
 
-  .notif-content {
-    color: rgb(var(--notif-color));
-    background-color: rgba(var(--notif-color), 0.1);
-    border-left: 4px solid rgb(var(--notif-color));
-    box-shadow: 0 4px 8px rgba(var(--notif-color), 0.15);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    padding: 15px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: 500;
-    backdrop-filter: blur(20px);
-    position: relative;
-    overflow: hidden;
-  }
+.notification.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.notification.hide {
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.notification.info,
+.notification.tx-notification.pending {
+  --notif-color: var(--color-blue);
+}
+
+.notification.success,
+.notification.tx-notification.success {
+  --notif-color: var(--color-green);
+}
+
+.notification.warning {
+  --notif-color: var(--color-orange);
+}
+
+.notification.danger,
+.notification.tx-notification.failed {
+  --notif-color: var(--color-red);
+}
+
+.notif-content {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgb(var(--notif-color));
+  background-color: rgba(var(--notif-color), 0.1);
+  border-left: 4px solid rgb(var(--notif-color));
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(var(--notif-color), 0.15);
+  backdrop-filter: blur(20px);
+  overflow: hidden;
 }
 
 .notif-close {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-  width: 24px;
-  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 24px;
+  height: 24px;
+  font-size: 20px;
   color: currentColor;
+  background: none;
+  border: none;
   border-radius: 50%;
+  cursor: pointer;
   transition: background-color 0.3s;
-  &:hover {
-    background-color: rgba(var(--notif-color), 0.2);
-  }
 }
 
-.notification.tx-notification {
-  &.pending .tx-icon {
-    color: rgb(var(--color-blue));
-  }
-  &.success .tx-icon {
-    color: rgb(var(--color-green));
-  }
-  &.failed .tx-icon {
-    color: rgb(var(--color-red));
-  }
-  &.success .tx-icon::before {
-    content: "✓";
-    font-size: 20px;
-    font-weight: bold;
-  }
-  &.failed .tx-icon::before {
-    content: "✗";
-    font-size: 20px;
-    font-weight: bold;
-  }
+.notif-close:hover {
+  background-color: rgba(var(--notif-color), 0.2);
 }
 
 .progress-bar {
@@ -473,6 +633,30 @@ input {
   flex-shrink: 0;
 }
 
+.notification.tx-notification.pending .tx-icon {
+  color: rgb(var(--color-blue));
+}
+
+.notification.tx-notification.success .tx-icon {
+  color: rgb(var(--color-green));
+}
+
+.notification.tx-notification.failed .tx-icon {
+  color: rgb(var(--color-red));
+}
+
+.notification.tx-notification.success .tx-icon::before {
+  content: "✓";
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.notification.tx-notification.failed .tx-icon::before {
+  content: "✗";
+  font-size: 20px;
+  font-weight: bold;
+}
+
 .tx-spinner {
   width: 20px;
   height: 20px;
@@ -495,33 +679,42 @@ input {
   flex-direction: column;
   gap: 4px;
 }
+
 .tx-label {
   font-size: 14px;
   font-weight: 600;
   color: currentColor;
 }
+
 .tx-hash {
   font-size: 12px;
   color: currentColor;
   opacity: 0.8;
-  a {
-    color: inherit;
-    text-decoration: none;
-    transition: opacity 0.3s;
-    &:hover {
-      opacity: 1;
-      text-decoration: underline;
-    }
-  }
 }
+
+.tx-hash a {
+  color: inherit;
+  text-decoration: none;
+  transition: opacity 0.3s;
+}
+
+.tx-hash a:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .tx-status {
-  font-size: 12px;
   margin-left: 8px;
+  font-size: 12px;
   font-weight: 500;
   color: currentColor;
   opacity: 0.9;
   white-space: nowrap;
 }
+
+/* ============================================================
+   RESPONSIVE DESIGN
+   ========================================================= */
 
 @media (max-width: 480px) {
   #notificationContainer {
@@ -530,171 +723,52 @@ input {
     bottom: 10px;
     max-width: none;
   }
+
   .notif-content {
     padding: 12px 16px;
     font-size: 14px;
   }
+
   .tx-icon {
     width: 28px;
     height: 28px;
   }
+
   .tx-spinner {
     width: 16px;
     height: 16px;
   }
 }
 
-/* RPC Modal */
-#connect-rpc {
-  position: relative;
-  display: flex;
-  align-items: center;
-  font-size: 1em;
-  border: none;
-  color: var(--color-txt);
-  background-color: var(--connect-color-btn);
-  width: 100%;
-  height: 50px;
-  padding: 7.5px 40px 7.5px 7.5px;
-  margin: 2.5px 0 0 0;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  &:hover {
-    background-color: var(--connect-color-hvr);
-  }
-  & svg {
-    height: 28px;
-    width: 28px;
-    margin-right: 12px;
-    flex-shrink: 0;
-  }
-}
+/* ============================================================
+   THEME TOGGLE
+   ========================================================= */
 
-.rpc-modal {
-  position: fixed;
-  z-index: 1000;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  overflow: auto;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.3s ease;
-  &.show {
-    opacity: 1;
-    pointer-events: auto;
-  }
-}
-
-.rpc-modal-content {
-  background-color: var(--color-bg);
-  padding: 20px;
-  border-radius: 15px;
-  box-shadow: var(--connect-shadow);
-  width: 90%;
-  max-width: 500px;
-  color: var(--color-txt);
-  transform: scale(0.9);
-  transition: transform 0.3s ease;
-}
-
-.rpc-modal.show .rpc-modal-content {
-  transform: scale(1);
-}
-
-.rpc-close-btn {
-  float: right;
-  width: 24px;
-  font-size: 24px;
-  height: 24px;
-  border-radius: 50%;
-  padding: 2.5px 5.5px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  &:hover {
-    background-color: var(--connect-color-btn);
-  }
-}
-
-#rpc-inputs {
-  display: grid;
-  gap: 15px;
-  margin: 20px 0;
-}
-
-#rpc-inputs div {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-#rpc-inputs label {
-  font-weight: 500;
-  font-size: 1em;
-}
-
-#rpc-inputs input {
-  padding: 7.5px 15px;
-  border: 1px solid var(--connect-color-btn);
-  border-radius: 6px;
-  background-color: var(--color-bg);
-  color: var(--color-txt);
-  font-size: 1em;
-}
-
-#rpc-inputs input:focus {
-  outline: none;
-  border-color: var(--connect-color-hvr);
-}
-
-#save-rpc-btn {
-  width: 100%;
-  padding: 10px;
-  background-color: var(--connect-color-btn);
-  color: var(--color-txt);
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1.1em;
-  font-weight: 500;
-  transition: background-color 0.3s;
-  &:hover {
-    background-color: var(--connect-color-hvr);
-  }
-}
-
-/* Theme */
 #theme-btn {
-  border: 0;
-  background: 0;
-  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 26px;
   height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var(--color-txt);
+  background: 0;
+  border: 0;
   opacity: 0.6;
+  cursor: pointer;
   transition: opacity 0.3s;
-  &:hover {
-    opacity: 0.9;
-  }
 }
+
+#theme-btn:hover {
+  opacity: 0.9;
+}
+
 #theme-btn svg {
   position: absolute;
-  transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   opacity: 0;
   transform: rotate(-90deg);
+  transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
+
 [data-selected-theme="light"][data-theme-source="light"] #theme-light,
 [data-selected-theme="dark"][data-theme-source="dark"] #theme-dark,
 [data-theme-source="system"] #theme-system {
