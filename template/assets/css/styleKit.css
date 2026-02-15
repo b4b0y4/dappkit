@@ -158,19 +158,17 @@ input {
 }
 
 .connect-btn.connected {
-  padding: var(--dk-space-sm) var(--dk-space-lg);
   gap: var(--dk-gap-md);
 }
 
-.connect-btn.ens-resolved {
+.connect-btn.name-resolved {
   flex-direction: row-reverse;
   justify-content: space-between;
-  gap: var(--dk-gap-md);
   height: auto;
   padding: var(--dk-gap-sm) var(--dk-space-md);
 }
 
-.connect-btn.ens-resolved img {
+.connect-btn.name-resolved img {
   margin-right: 0;
 }
 
@@ -181,25 +179,25 @@ input {
   border: var(--dk-border-thin) solid var(--color-bg);
 }
 
-.ens-details {
+.name-details {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.ens-name {
+.resolved-name {
   display: flex;
   align-items: center;
   font-size: var(--dk-font-sm);
 }
 
-.ens-address-row {
+.named-address-row {
   display: flex;
   align-items: center;
   gap: var(--dk-gap-xs);
 }
 
-.ens-address {
+.named-address {
   font-size: var(--dk-font-xs);
   opacity: var(--dk-opacity-70);
 }
@@ -225,12 +223,12 @@ input {
   height: 14px;
 }
 
-.ens-address-row .connect-copy-btn {
+.named-address-row .connect-copy-btn {
   width: var(--dk-icon-xs);
   height: var(--dk-icon-xs);
 }
 
-.ens-address-row .connect-copy-btn svg {
+.named-address-row .connect-copy-btn svg {
   width: 8px;
   height: 8px;
 }

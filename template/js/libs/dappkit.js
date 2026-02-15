@@ -58,6 +58,60 @@ export const networkConfigs = {
     explorerUrl: "https://etherscan.io/tx/",
     showInUI: true,
   },
+  arbitrum: {
+    name: "Arbitrum",
+    rpcUrl: "https://1rpc.io/arb",
+    chainId: 42161,
+    chainIdHex: "0xa4b1",
+    icon: "./assets/img/arb.png",
+    explorerUrl: "https://arbiscan.io/tx/",
+    showInUI: true,
+  },
+  optimism: {
+    name: "Optimism",
+    rpcUrl: "https://mainnet.optimism.io",
+    chainId: 10,
+    chainIdHex: "0xa",
+    icon: "./assets/img/op.png",
+    explorerUrl: "https://optimistic.etherscan.io/tx/",
+    showInUI: true,
+  },
+  base: {
+    name: "Base",
+    rpcUrl: "https://base-rpc.publicnode.com",
+    chainId: 8453,
+    chainIdHex: "0x2105",
+    icon: "./assets/img/base.png",
+    explorerUrl: "https://basescan.org/tx/",
+    showInUI: true,
+  },
+  zksync: {
+    name: "ZKsync",
+    rpcUrl: "https://mainnet.era.zksync.io",
+    chainId: 324,
+    chainIdHex: "0x144",
+    icon: "./assets/img/zksync.png",
+    explorerUrl: "https://explorer.zksync.io/tx/",
+    showInUI: false,
+  },
+  scroll: {
+    name: "Scroll",
+    rpcUrl: "https://rpc.scroll.io",
+    chainId: 534352,
+    chainIdHex: "0x82750",
+    icon: "./assets/img/scroll.png",
+    explorerUrl: "https://scrollscan.com/tx/",
+    showInUI: false,
+  },
+  sepolia: {
+    name: "Sepolia",
+    rpcUrl: "https://rpc.sepolia.org",
+    chainId: 11155111,
+    chainIdHex: "0xaa36a7",
+    icon: "./assets/img/sepolia.png",
+    explorerUrl: "https://sepolia.etherscan.io/tx/",
+    showInUI: false,
+  },
 };
 
 // ============================================================
@@ -701,7 +755,7 @@ export class ConnectWallet {
       <span class="connect-copy-btn" data-copy="${address}"></span>
     `;
     this.elements.connectBtn.classList.add("connected");
-    this.elements.connectBtn.classList.remove("ens-resolved");
+    this.elements.connectBtn.classList.remove("name-resolved");
     this.elements.connectBtn.setAttribute("data-address", address);
     this.resolveName(address);
   }
@@ -773,10 +827,10 @@ export class ConnectWallet {
       if (!resolvedName) return;
 
       let buttonContent = `
-        <div class="ens-details">
-          <div class="ens-name">${resolvedName}</div>
-          <div class="ens-address-row">
-            <span class="ens-address">${short}</span>
+        <div class="name-details">
+          <div class="resolved-name">${resolvedName}</div>
+          <div class="named-address-row">
+            <span class="named-address">${short}</span>
             <span class="connect-copy-btn" data-copy="${address}"></span>
           </div>
         </div>
@@ -787,7 +841,7 @@ export class ConnectWallet {
       }
 
       this.elements.connectBtn.innerHTML = buttonContent;
-      this.elements.connectBtn.classList.add("ens-resolved");
+      this.elements.connectBtn.classList.add("name-resolved");
       this.elements.connectBtn.setAttribute("data-address", address);
       this.elements.connectBtn.setAttribute(
         "data-resolution-source",
@@ -854,7 +908,7 @@ export class ConnectWallet {
 
     if (this.elements.connectBtn) {
       this.elements.connectBtn.innerHTML = "Connect";
-      this.elements.connectBtn.classList.remove("connected", "ens-resolved");
+      this.elements.connectBtn.classList.remove("connected", "name-resolved");
     }
 
     this.elements.connectModal?.classList.remove("show");
