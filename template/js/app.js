@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!allowed) {
       Notification.show(
         `Please switch to a supported network. Chain ${chainId} is not supported.`,
-        "danger",
+        "error",
         { duration: 0 },
       );
       return;
@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
         label: "Demo Transaction",
       });
     } catch (error) {
-      Notification.show("Transaction failed: " + error.message, "danger");
+      Notification.show("Transaction failed: " + error.message, "error");
     }
   });
 });

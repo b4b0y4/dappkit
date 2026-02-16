@@ -637,7 +637,7 @@ input {
   --dk-notif-color: var(--dk-color-orange);
 }
 
-.notification.danger,
+.notification.error,
 .notification.tx-notification.failed {
   --dk-notif-color: var(--dk-color-red);
 }
