@@ -29,6 +29,8 @@ document.addEventListener("DOMContentLoaded", () => {
     Notification.show(`Switched to ${name}`, "info");
   });
 
+  wallet.setNameResolutionOrder("wns-first");
+
   // Demo notification buttons
   document.querySelectorAll("button[data-type]").forEach((btn) => {
     btn.addEventListener("click", () => {
