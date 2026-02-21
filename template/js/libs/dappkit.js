@@ -6,7 +6,6 @@ import { ethers } from "./ethers.min.js";
 
 const WNS_CONTRACT_ADDRESS = "0x0000000000696760E15f265e828DB644A0c242EB";
 
-// Minimal ABI for reverse resolution
 const WNS_ABI = [
   {
     inputs: [{ internalType: "address", name: "addr", type: "address" }],
@@ -183,6 +182,14 @@ export function getRpcUrl(network) {
   return customRpc || networkConfigs[network].rpcUrl;
 }
 
+function removeElementWithDelay(element, delay, onRemove) {
+  element.classList.add("hide");
+  setTimeout(() => {
+    element?.parentNode?.removeChild(element);
+    onRemove?.();
+  }, delay);
+}
+
 // ============================================================
 // RPC MODAL
 // ============================================================
@@ -234,7 +241,6 @@ function saveRpcSettings() {
   toggleRpcModal(false);
 }
 
-// Event Listeners
 rpcCloseBtn?.addEventListener("click", () => toggleRpcModal(false));
 saveRpcBtn?.addEventListener("click", saveRpcSettings);
 
@@ -341,7 +347,6 @@ class Copy {
   }
 }
 
-// Initialize Copy
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => Copy.init());
 } else {
@@ -522,17 +527,13 @@ export class Notification {
         this.updateTransactionStatus(id, "failed", "Failed");
         config.onError?.(new Error("Transaction failed"));
       }
-
-      if (config.autoRemove) {
-        setTimeout(() => this.removeTransaction(id), config.removeDelay);
-      }
     } catch (error) {
       if (!this.transactions.has(id)) return;
 
       this.updateTransactionStatus(id, "failed", "Failed");
       config.onError?.(error);
-
-      if (config.autoRemove) {
+    } finally {
+      if (config.autoRemove && this.transactions.has(id)) {
         setTimeout(() => this.removeTransaction(id), config.removeDelay);
       }
     }
@@ -556,13 +557,11 @@ export class Notification {
   static removeTransaction(id) {
     const txData = this.transactions.get(id);
     if (!txData) return;
-
-    txData.element.classList.add("hide");
-
-    setTimeout(() => {
-      txData.element?.parentNode?.removeChild(txData.element);
-      this.transactions.delete(id);
-    }, TIMINGS.NOTIFICATION_HIDE_DELAY);
+    removeElementWithDelay(
+      txData.element,
+      TIMINGS.NOTIFICATION_HIDE_DELAY,
+      () => this.transactions.delete(id),
+    );
   }
 
   static hide(id) {
@@ -570,13 +569,9 @@ export class Notification {
     if (!notif) return;
 
     if (notif.timeoutId) clearTimeout(notif.timeoutId);
-
-    notif.element.classList.add("hide");
-
-    setTimeout(() => {
-      notif.element?.parentNode?.removeChild(notif.element);
-      this.notifications.delete(id);
-    }, TIMINGS.NOTIFICATION_HIDE_DELAY);
+    removeElementWithDelay(notif.element, TIMINGS.NOTIFICATION_HIDE_DELAY, () =>
+      this.notifications.delete(id),
+    );
   }
 
   static scheduleHide(id, delay) {
@@ -606,19 +601,15 @@ export class ConnectWallet {
     this.providers = [];
     this.storage = options.storage || window.localStorage;
     this.currentProvider = null;
-
-    // Name resolution order: 'wns-first' or 'ens-first'
     this.nameResolutionOrder = options.nameResolutionOrder || "wns-first";
 
-    // Precompute lookups
-    this.chainIdToName = {};
-    this.allowedChains = [];
-    Object.values(this.networkConfigs).forEach((cfg) => {
-      this.chainIdToName[cfg.chainId] = cfg.name;
-      if (cfg.showInUI) {
-        this.allowedChains.push(cfg.chainId);
-      }
-    });
+    const networks = Object.values(this.networkConfigs);
+    this.chainIdToName = Object.fromEntries(
+      networks.map((cfg) => [cfg.chainId, cfg.name]),
+    );
+    this.allowedChains = networks
+      .filter((cfg) => cfg.showInUI)
+      .map((cfg) => cfg.chainId);
 
     this.initWhenReady();
   }
@@ -655,9 +646,9 @@ export class ConnectWallet {
   }
 
   bindEvents() {
-    window.addEventListener("eip6963:announceProvider", (event) => {
-      this.handleProviderAnnounce(event);
-    });
+    window.addEventListener("eip6963:announceProvider", (event) =>
+      this.handleProviderAnnounce(event),
+    );
   }
 
   setupUIEvents() {
@@ -690,17 +681,21 @@ export class ConnectWallet {
     const { detail: providerDetail } = event;
     const providerName = providerDetail.info.name;
     const exists = this.providers.some((p) => p.info.name === providerName);
+    if (exists) return;
 
-    if (!exists) {
-      this.providers.push(providerDetail);
-      this.render();
+    this.providers.push(providerDetail);
+    this.render();
 
-      if (this.isConnected()) {
-        if (this.getLastWallet() === providerName) {
-          this.syncConnectedProviderState(providerDetail);
-        }
-      }
+    if (this.isConnected() && this.getLastWallet() === providerName) {
+      this.syncConnectedProviderState(providerDetail);
     }
+  }
+
+  async requestProviderState(provider, accountMethod = "eth_accounts") {
+    return Promise.all([
+      provider.request({ method: accountMethod }),
+      provider.request({ method: "eth_chainId" }),
+    ]);
   }
 
   createButton(config, onClick) {
@@ -715,10 +710,10 @@ export class ConnectWallet {
     if (!provider) return;
 
     try {
-      const [accounts, chainId] = await Promise.all([
-        provider.provider.request({ method: "eth_requestAccounts" }),
-        provider.provider.request({ method: "eth_chainId" }),
-      ]);
+      const [accounts, chainId] = await this.requestProviderState(
+        provider.provider,
+        "eth_requestAccounts",
+      );
 
       this.storage.setItem(STORAGE_KEYS.CHAIN_ID, chainId);
       this.storage.setItem(STORAGE_KEYS.LAST_WALLET, provider.info.name);
@@ -783,10 +778,9 @@ export class ConnectWallet {
     this.setupProviderEvents(providerDetail);
 
     try {
-      const [accounts, chainId] = await Promise.all([
-        providerDetail.provider.request({ method: "eth_accounts" }),
-        providerDetail.provider.request({ method: "eth_chainId" }),
-      ]);
+      const [accounts, chainId] = await this.requestProviderState(
+        providerDetail.provider,
+      );
 
       this.storage.setItem(STORAGE_KEYS.LAST_WALLET, providerDetail.info.name);
 
@@ -798,7 +792,6 @@ export class ConnectWallet {
       this.updateNetworkStatus(chainId);
       this.render();
     } catch {
-      // Keep persisted UI state if provider is not ready yet.
       this.render();
     }
   }
@@ -851,16 +844,12 @@ export class ConnectWallet {
           try {
             const chainId = await provider.request({ method: "eth_chainId" });
             this.updateNetworkStatus(chainId);
-          } catch {
-            // Chain ID can fail transiently even if accounts are present.
-          }
+          } catch {}
 
           this.render();
           return;
         }
-      } catch {
-        // Ignore and retry below.
-      }
+      } catch {}
 
       if (attempt < retries) {
         await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
@@ -888,7 +877,6 @@ export class ConnectWallet {
     this.resolveName(address);
   }
 
-  // Resolve Wei Name Service specifically
   async resolveWNS(address) {
     try {
       const provider = new ethers.JsonRpcProvider(getRpcUrl("ethereum"));
@@ -904,7 +892,6 @@ export class ConnectWallet {
     }
   }
 
-  // Resolve ENS specifically
   async resolveENS(address) {
     try {
       const mainnetProvider = new ethers.JsonRpcProvider(getRpcUrl("ethereum"));
@@ -918,45 +905,38 @@ export class ConnectWallet {
     }
   }
 
-  // Orchestrate name resolution based on order preference
   async resolveName(address) {
     if (!this.elements.connectBtn) return;
 
     const short = shortenAddress(address);
-    let resolvedName = null;
-    let resolvedAvatar = null;
-    let resolutionSource = null;
+    const resolutionOrder =
+      this.nameResolutionOrder === "wns-first"
+        ? ["wns", "ens"]
+        : ["ens", "wns"];
+    let resolved = null;
 
     try {
-      if (this.nameResolutionOrder === "wns-first") {
-        resolvedName = await this.resolveWNS(address);
-        if (resolvedName) {
-          resolutionSource = "wns";
-        } else {
-          const ensResult = await this.resolveENS(address);
-          if (ensResult.name) {
-            resolvedName = ensResult.name;
-            resolvedAvatar = ensResult.avatar;
-            resolutionSource = "ens";
+      for (const source of resolutionOrder) {
+        if (source === "wns") {
+          const name = await this.resolveWNS(address);
+          if (name) {
+            resolved = { name, avatar: null, source };
+            break;
           }
-        }
-      } else {
-        const ensResult = await this.resolveENS(address);
-        if (ensResult.name) {
-          resolvedName = ensResult.name;
-          resolvedAvatar = ensResult.avatar;
-          resolutionSource = "ens";
         } else {
-          resolvedName = await this.resolveWNS(address);
-          if (resolvedName) resolutionSource = "wns";
+          const { name, avatar } = await this.resolveENS(address);
+          if (name) {
+            resolved = { name, avatar, source };
+            break;
+          }
         }
       }
 
-      if (!resolvedName) return;
+      if (!resolved?.name) return;
 
       let buttonContent = `
         <div class="name-details">
-          <div class="resolved-name">${resolvedName}</div>
+          <div class="resolved-name">${resolved.name}</div>
           <div class="named-address-row">
             <span class="named-address">${short}</span>
             <span class="connect-copy-btn" data-copy="${address}"></span>
@@ -964,8 +944,8 @@ export class ConnectWallet {
         </div>
       `;
 
-      if (resolvedAvatar) {
-        buttonContent += `<img src="${resolvedAvatar}" style="border-radius: 50%">`;
+      if (resolved.avatar) {
+        buttonContent += `<img src="${resolved.avatar}" style="border-radius: 50%">`;
       }
 
       this.elements.connectBtn.innerHTML = buttonContent;
@@ -973,7 +953,7 @@ export class ConnectWallet {
       this.elements.connectBtn.setAttribute("data-address", address);
       this.elements.connectBtn.setAttribute(
         "data-resolution-source",
-        resolutionSource,
+        resolved.source,
       );
     } catch {
       // Silently fail - address might not have a name
@@ -985,15 +965,13 @@ export class ConnectWallet {
     if (!provider) return;
 
     try {
+      const chainIdHex = chainIdToHex(networkConfig.chainId);
       await provider.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: chainIdToHex(networkConfig.chainId) }],
+        params: [{ chainId: chainIdHex }],
       });
       this.hideModal();
-      this.storage.setItem(
-        STORAGE_KEYS.CHAIN_ID,
-        chainIdToHex(networkConfig.chainId),
-      );
+      this.storage.setItem(STORAGE_KEYS.CHAIN_ID, chainIdHex);
       this.updateNetworkStatus(networkConfig.chainId);
       this.render();
     } catch (error) {
@@ -1216,7 +1194,6 @@ export class ConnectWallet {
 
     this.nameResolutionOrder = order;
 
-    // Re-resolve current address if connected
     if (this.isConnected()) {
       this.getAccount().then((address) => {
         if (address) {
