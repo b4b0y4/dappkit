@@ -38,7 +38,6 @@ const TIMINGS = {
   NOTIFICATION_HIDE_DELAY: 400,
   TRANSACTION_REMOVE_DELAY: 5000,
   COPY_FEEDBACK_DURATION: 2000,
-  PROVIDER_STATE_POLL_INTERVAL: 1200,
 };
 
 const COPY_ICONS = {
@@ -587,7 +586,6 @@ export class ConnectWallet {
     this.storage = options.storage || window.localStorage;
     this.currentProvider = null;
     this.providerListeners = null;
-    this.providerStatePollId = null;
     this.nameResolutionOrder = options.nameResolutionOrder || "wns-first";
 
     const networks = Object.values(this.networkConfigs);
@@ -628,6 +626,13 @@ export class ConnectWallet {
     window.addEventListener("eip6963:announceProvider", (event) =>
       this.handleProviderAnnounce(event),
     );
+    window.addEventListener("focus", () =>
+      this.verifyConnectionState({ allowUiDisconnect: true, retries: 1 }),
+    );
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState !== "visible") return;
+      this.verifyConnectionState({ allowUiDisconnect: true, retries: 1 });
+    });
   }
 
   setupUIEvents() {
@@ -694,14 +699,12 @@ export class ConnectWallet {
         "eth_requestAccounts",
       );
 
-      this.storage.setItem(STORAGE_KEYS.CHAIN_ID, chainId);
-      this.storage.setItem(STORAGE_KEYS.LAST_WALLET, provider.info.name);
-      this.storage.setItem(STORAGE_KEYS.IS_CONNECTED, "true");
-
       this.setupProviderEvents(provider);
-      this.updateAddress(accounts[0]);
-      this.updateNetworkStatus(chainId);
-      this.render();
+      this.applyConnectedState({
+        accounts,
+        chainId,
+        providerName: provider.info.name,
+      });
 
       if (this.onConnectCallback) {
         this.onConnectCallback({
@@ -721,24 +724,7 @@ export class ConnectWallet {
   setupProviderEvents(provider) {
     if (this.currentProvider === provider.provider) return;
 
-    if (this.currentProvider && this.providerListeners) {
-      if (typeof this.currentProvider.removeListener === "function") {
-        this.currentProvider.removeListener(
-          "accountsChanged",
-          this.providerListeners.accountsChanged,
-        );
-        this.currentProvider.removeListener(
-          "chainChanged",
-          this.providerListeners.chainChanged,
-        );
-        this.currentProvider.removeListener(
-          "disconnect",
-          this.providerListeners.disconnect,
-        );
-      } else {
-        this.currentProvider.removeAllListeners?.();
-      }
-    }
+    this.removeProviderEvents();
 
     this.currentProvider = provider.provider;
     this.providerListeners = {
@@ -764,8 +750,28 @@ export class ConnectWallet {
       this.providerListeners.chainChanged,
     );
     this.currentProvider.on("disconnect", this.providerListeners.disconnect);
+  }
 
-    this.startProviderStatePolling();
+  removeProviderEvents() {
+    if (!this.currentProvider || !this.providerListeners) return;
+
+    if (typeof this.currentProvider.removeListener === "function") {
+      this.currentProvider.removeListener(
+        "accountsChanged",
+        this.providerListeners.accountsChanged,
+      );
+      this.currentProvider.removeListener(
+        "chainChanged",
+        this.providerListeners.chainChanged,
+      );
+      this.currentProvider.removeListener(
+        "disconnect",
+        this.providerListeners.disconnect,
+      );
+      return;
+    }
+
+    this.currentProvider.removeAllListeners?.();
   }
 
   async syncConnectedProviderState(providerDetail) {
@@ -777,16 +783,11 @@ export class ConnectWallet {
       const [accounts, chainId] = await this.requestProviderState(
         providerDetail.provider,
       );
-
-      this.storage.setItem(STORAGE_KEYS.LAST_WALLET, providerDetail.info.name);
-
-      if (Array.isArray(accounts) && accounts.length > 0) {
-        this.storage.setItem(STORAGE_KEYS.IS_CONNECTED, "true");
-        this.updateAddress(accounts[0]);
-      }
-
-      this.updateNetworkStatus(chainId);
-      this.render();
+      this.applyConnectedState({
+        accounts,
+        chainId,
+        providerName: providerDetail.info.name,
+      });
     } catch {
       this.render();
     }
@@ -799,27 +800,9 @@ export class ConnectWallet {
       Boolean(this.getCurrentChainId());
     if (!hadConnectedState) return;
 
-    if (this.currentProvider && this.providerListeners) {
-      if (typeof this.currentProvider.removeListener === "function") {
-        this.currentProvider.removeListener(
-          "accountsChanged",
-          this.providerListeners.accountsChanged,
-        );
-        this.currentProvider.removeListener(
-          "chainChanged",
-          this.providerListeners.chainChanged,
-        );
-        this.currentProvider.removeListener(
-          "disconnect",
-          this.providerListeners.disconnect,
-        );
-      } else {
-        this.currentProvider.removeAllListeners?.();
-      }
-    }
+    this.removeProviderEvents();
     this.currentProvider = null;
     this.providerListeners = null;
-    this.stopProviderStatePolling();
 
     [
       STORAGE_KEYS.CHAIN_ID,
@@ -851,16 +834,21 @@ export class ConnectWallet {
 
     for (let attempt = 0; attempt <= retries; attempt += 1) {
       try {
-        const accounts = await provider.request({ method: "eth_accounts" });
+        const [accounts, chainId] = await this.requestProviderState(provider);
         if (Array.isArray(accounts) && accounts.length > 0) {
-          this.updateAddress(accounts[0]);
-          this.storage.setItem(STORAGE_KEYS.IS_CONNECTED, "true");
+          const previousChainId = normalizeChainId(this.getCurrentChainId());
+          const nextChainId = normalizeChainId(chainId);
 
-          try {
-            const chainId = await provider.request({ method: "eth_chainId" });
-            this.updateNetworkStatus(chainId);
-          } catch {}
+          this.applyConnectedState({
+            accounts,
+            chainId,
+            providerName: this.getLastWallet(),
+            render: false,
+          });
 
+          if (Number.isFinite(nextChainId) && nextChainId !== previousChainId) {
+            this.emitChainChange(chainId);
+          }
           this.render();
           return;
         }
@@ -879,60 +867,39 @@ export class ConnectWallet {
   }
 
   handleChainChanged(chainId) {
+    const previousChainId = normalizeChainId(this.getCurrentChainId());
+    const nextChainId = normalizeChainId(chainId);
     this.updateNetworkStatus(chainId);
-
-    if (this.onChainChangeCallback) {
-      const normalized = normalizeChainId(chainId);
-      const name = this.chainIdToName[normalized] || `Unknown (${chainId})`;
-      const allowed = this.isAllowed(chainId);
-
-      this.onChainChangeCallback({
-        chainId: normalized,
-        hexChainId: chainIdToHex(normalized),
-        name,
-        allowed,
-      });
+    if (Number.isFinite(nextChainId) && nextChainId !== previousChainId) {
+      this.emitChainChange(chainId);
     }
-
     this.render();
   }
 
-  startProviderStatePolling() {
-    this.stopProviderStatePolling();
-    this.providerStatePollId = window.setInterval(async () => {
-      const provider = this.currentProvider;
-      if (!provider || !this.isConnected()) return;
+  emitChainChange(chainId) {
+    if (!this.onChainChangeCallback) return;
+    const normalized = normalizeChainId(chainId);
+    const name = this.chainIdToName[normalized] || `Unknown (${chainId})`;
+    const allowed = this.isAllowed(chainId);
 
-      try {
-        const [accounts, chainId] = await this.requestProviderState(provider);
-        const currentStored = normalizeChainId(this.getCurrentChainId());
-        const polled = normalizeChainId(chainId);
-
-        if (
-          Number.isFinite(polled) &&
-          (!Number.isFinite(currentStored) || currentStored !== polled)
-        ) {
-          this.handleChainChanged(chainId);
-        }
-
-        if (!Array.isArray(accounts) || accounts.length === 0) {
-          this.verifyConnectionState({ allowUiDisconnect: true, retries: 1 });
-          return;
-        }
-
-        const currentAddress =
-          this.elements.connectBtn?.getAttribute("data-address") || "";
-        if (currentAddress.toLowerCase() !== accounts[0].toLowerCase()) {
-          this.updateAddress(accounts[0]);
-        }
-      } catch {}
-    }, TIMINGS.PROVIDER_STATE_POLL_INTERVAL);
+    this.onChainChangeCallback({
+      chainId: normalized,
+      hexChainId: chainIdToHex(normalized),
+      name,
+      allowed,
+    });
   }
 
-  stopProviderStatePolling() {
-    if (this.providerStatePollId == null) return;
-    window.clearInterval(this.providerStatePollId);
-    this.providerStatePollId = null;
+  applyConnectedState({ accounts, chainId, providerName, render = true }) {
+    const account = Array.isArray(accounts) ? accounts[0] : null;
+    if (!account) return;
+
+    this.storage.setItem(STORAGE_KEYS.IS_CONNECTED, "true");
+    if (providerName)
+      this.storage.setItem(STORAGE_KEYS.LAST_WALLET, providerName);
+    this.updateAddress(account);
+    this.updateNetworkStatus(chainId);
+    if (render) this.render();
   }
 
   updateAddress(address) {
