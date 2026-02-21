@@ -478,6 +478,7 @@ input {
 }
 
 .rpc-modal-content {
+  position: relative;
   width: var(--dk-modal-width);
   max-width: var(--dk-modal-max-width);
   padding: var(--dk-space-xl);
@@ -493,22 +494,67 @@ input {
   transform: scale(1);
 }
 
-.rpc-close-btn {
-  float: right;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.rpc-close-btn,
+.notif-close {
+  position: relative;
+  display: block;
   width: var(--dk-icon-md);
   height: var(--dk-icon-md);
-  padding: 2.5px 5.5px 6px;
-  font-size: var(--dk-font-24);
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  color: currentColor;
+  background: none;
+  border: none;
   border-radius: var(--dk-radius-round);
   cursor: pointer;
   transition: background-color var(--dk-transition);
 }
 
+.rpc-close-btn::before,
+.notif-close::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 1px;
+  transform: translate(-50%, -50%) rotate(45deg);
+  pointer-events: none;
+}
+
+.rpc-close-btn::after,
+.notif-close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 1px;
+  transform: translate(-50%, -50%) rotate(-45deg);
+  pointer-events: none;
+}
+
+.rpc-close-btn {
+  position: absolute;
+  top: var(--dk-space-lg);
+  right: var(--dk-space-lg);
+}
+
 .rpc-close-btn:hover {
   background-color: var(--dk-connect-color-btn);
+}
+
+.rpc-close-btn:focus-visible,
+.notif-close:focus-visible {
+  outline: var(--dk-border-thin) solid currentColor;
+  outline-offset: 2px;
 }
 
 #rpc-inputs {
@@ -662,18 +708,7 @@ input {
 }
 
 .notif-close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--dk-icon-md);
-  height: var(--dk-icon-md);
-  font-size: var(--dk-font-20);
-  color: currentColor;
-  background: none;
-  border: none;
-  border-radius: var(--dk-radius-round);
-  cursor: pointer;
-  transition: background-color var(--dk-transition);
+  flex-shrink: 0;
 }
 
 .notif-close:hover {
