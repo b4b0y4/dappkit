@@ -111,35 +111,8 @@ export const networkConfigs = {
 // ============================================================
 
 function normalizeChainId(chainId) {
-  if (typeof chainId === "string") {
-    const value = chainId.trim();
-    if (!value) return NaN;
-
-    if (value.includes(":")) {
-      const [, caipChainId] = value.split(":");
-      const parsedCaip = Number(caipChainId);
-      return Number.isFinite(parsedCaip) ? parsedCaip : NaN;
-    }
-
-    if (value.toLowerCase().startsWith("0x")) {
-      return parseInt(value, 16);
-    }
-
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : NaN;
-  }
-
-  if (typeof chainId === "object" && chainId !== null) {
-    return normalizeChainId(
-      chainId.chainId ?? chainId.hexChainId ?? chainId.id,
-    );
-  }
-
-  if (typeof chainId === "bigint") {
-    const parsed = Number(chainId);
-    return Number.isFinite(parsed) ? parsed : NaN;
-  }
-
+  if (typeof chainId === "string") chainId = chainId.trim();
+  if (!chainId && chainId !== 0) return NaN;
   const parsed = Number(chainId);
   return Number.isFinite(parsed) ? parsed : NaN;
 }
@@ -150,14 +123,17 @@ function chainIdToHex(chainId) {
   return `0x${normalized.toString(16)}`;
 }
 
+function shortenMiddle(value, startChars, endChars) {
+  if (!value) return "";
+  return `${value.substring(0, startChars)}...${value.substring(value.length - endChars)}`;
+}
+
 function shortenAddress(address, startChars = 5, endChars = 4) {
-  if (!address) return "";
-  return `${address.substring(0, startChars)}...${address.substring(address.length - endChars)}`;
+  return shortenMiddle(address, startChars, endChars);
 }
 
 function shortenHash(hash, startChars = 6, endChars = 4) {
-  if (!hash) return "";
-  return `${hash.substring(0, startChars)}...${hash.substring(hash.length - endChars)}`;
+  return shortenMiddle(hash, startChars, endChars);
 }
 
 function escapeHtml(text) {
@@ -182,12 +158,24 @@ export function getRpcUrl(network) {
   return customRpc || networkConfigs[network].rpcUrl;
 }
 
+function getEthereumProvider() {
+  return new ethers.JsonRpcProvider(getRpcUrl("ethereum"));
+}
+
 function removeElementWithDelay(element, delay, onRemove) {
   element.classList.add("hide");
   setTimeout(() => {
     element?.parentNode?.removeChild(element);
     onRemove?.();
   }, delay);
+}
+
+function onReady(callback) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", callback);
+    return;
+  }
+  callback();
 }
 
 // ============================================================
@@ -347,11 +335,7 @@ class Copy {
   }
 }
 
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", () => Copy.init());
-} else {
-  Copy.init();
-}
+onReady(() => Copy.init());
 
 // ============================================================
 // NOTIFICATIONS
@@ -611,15 +595,7 @@ export class ConnectWallet {
       .filter((cfg) => cfg.showInUI)
       .map((cfg) => cfg.chainId);
 
-    this.initWhenReady();
-  }
-
-  initWhenReady() {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", () => this.init());
-    } else {
-      this.init();
-    }
+    onReady(() => this.init());
   }
 
   init() {
@@ -879,11 +855,10 @@ export class ConnectWallet {
 
   async resolveWNS(address) {
     try {
-      const provider = new ethers.JsonRpcProvider(getRpcUrl("ethereum"));
       const wnsContract = new ethers.Contract(
         WNS_CONTRACT_ADDRESS,
         WNS_ABI,
-        provider,
+        getEthereumProvider(),
       );
       const wnsName = await wnsContract.reverseResolve(address);
       return wnsName || null;
@@ -893,15 +868,16 @@ export class ConnectWallet {
   }
 
   async resolveENS(address) {
+    const empty = { name: null, avatar: null };
     try {
-      const mainnetProvider = new ethers.JsonRpcProvider(getRpcUrl("ethereum"));
+      const mainnetProvider = getEthereumProvider();
       const ensName = await mainnetProvider.lookupAddress(address);
-      if (!ensName) return { name: null, avatar: null };
+      if (!ensName) return empty;
 
       const avatar = await mainnetProvider.getAvatar(ensName);
       return { name: ensName, avatar };
     } catch {
-      return { name: null, avatar: null };
+      return empty;
     }
   }
 
@@ -955,9 +931,7 @@ export class ConnectWallet {
         "data-resolution-source",
         resolved.source,
       );
-    } catch {
-      // Silently fail - address might not have a name
-    }
+    } catch {}
   }
 
   async switchNetwork(networkConfig) {
@@ -981,7 +955,7 @@ export class ConnectWallet {
   }
 
   updateNetworkStatus(chainId) {
-    if (chainId === undefined || chainId === null || chainId === "") return;
+    if (chainId == null || chainId === "") return;
 
     const network = getNetworkByChainId(chainId);
 
@@ -1066,20 +1040,15 @@ export class ConnectWallet {
       const button = document.createElement("button");
       button.id = `connect-${networkName}`;
       button.title = networkConfig.name;
-
-      if (isSingleNetwork) {
-        button.classList.add("chain-single");
-        button.innerHTML = `<img src="${networkConfig.icon}" alt="${networkConfig.name}"><span class="connect-name">${networkConfig.name}</span><span class="connect-dot" style="display: none"></span>`;
-      } else {
-        button.innerHTML = `<img src="${networkConfig.icon}" alt="${networkConfig.name}">`;
-      }
+      button.classList.toggle("chain-single", isSingleNetwork);
+      button.innerHTML = isSingleNetwork
+        ? `<img src="${networkConfig.icon}" alt="${networkConfig.name}"><span class="connect-name">${networkConfig.name}</span><span class="connect-dot" style="display: none"></span>`
+        : `<img src="${networkConfig.icon}" alt="${networkConfig.name}">`;
 
       button.onclick = () => this.switchNetwork(networkConfig);
 
       const indicator = document.createElement("span");
-      indicator.className = isSingleNetwork
-        ? "connect-dot"
-        : "connect-dot-icon";
+      indicator.className = `connect-dot${isSingleNetwork ? "" : "-icon"}`;
       button.appendChild(indicator);
 
       indicator.style.display =
@@ -1093,9 +1062,8 @@ export class ConnectWallet {
 
   renderGetWallet() {
     const getWalletEl = document.querySelector("#connect-get-wallet");
-    if (getWalletEl) {
+    if (getWalletEl)
       getWalletEl.style.display = this.providers.length ? "none" : "block";
-    }
   }
 
   restoreState() {
@@ -1104,12 +1072,9 @@ export class ConnectWallet {
       chainIdToHex(this.networkConfigs.ethereum.chainId);
     this.updateNetworkStatus(storedChainId);
 
-    if (this.isConnected()) {
-      const providerDetail = this.getConnectedProviderDetail();
-      if (providerDetail) {
-        this.syncConnectedProviderState(providerDetail);
-      }
-    }
+    const providerDetail =
+      this.isConnected() && this.getProviderDetail(this.getLastWallet());
+    if (providerDetail) this.syncConnectedProviderState(providerDetail);
   }
 
   isConnected() {
@@ -1129,12 +1094,8 @@ export class ConnectWallet {
     return this.providers.find((p) => p.info.name === name) || null;
   }
 
-  getConnectedProviderDetail() {
-    return this.getProviderDetail(this.getLastWallet());
-  }
-
   getConnectedProvider() {
-    return this.getConnectedProviderDetail()?.provider;
+    return this.getProviderDetail(this.getLastWallet())?.provider;
   }
 
   async getAccount() {
@@ -1195,11 +1156,7 @@ export class ConnectWallet {
     this.nameResolutionOrder = order;
 
     if (this.isConnected()) {
-      this.getAccount().then((address) => {
-        if (address) {
-          this.resolveName(address);
-        }
-      });
+      this.getAccount().then((address) => address && this.resolveName(address));
     }
   }
 
