@@ -599,6 +599,9 @@ export class ConnectWallet {
     this.currentProvider = null;
     this.providerListeners = null;
     this.nameResolutionOrder = options.nameResolutionOrder || "wns-first";
+    this.showUnsupportedNetworkNotification =
+      options.showUnsupportedNetworkNotification !== false;
+    this.unsupportedNetworkNotificationId = null;
 
     const networks = Object.values(this.networkConfigs);
     this.chainIdToName = Object.fromEntries(
@@ -868,6 +871,7 @@ export class ConnectWallet {
   handleChainChanged(chainId) {
     const previousChainId = this.getCurrentChainId();
     this.updateNetworkStatus(chainId);
+    this.syncUnsupportedNetworkNotice(chainId);
     if (hasChainChanged(previousChainId, chainId)) {
       this.emitChainChange(chainId);
     }
@@ -896,7 +900,34 @@ export class ConnectWallet {
     this.setStorageState(STORAGE_KEYS.LAST_WALLET, providerName);
     this.updateAddress(account);
     this.updateNetworkStatus(chainId);
+    this.syncUnsupportedNetworkNotice(chainId);
     if (render) this.render();
+  }
+
+  showUnsupportedNetworkNotice() {
+    if (!this.showUnsupportedNetworkNotification) return;
+    if (this.unsupportedNetworkNotificationId) {
+      Notification.hide(this.unsupportedNetworkNotificationId);
+    }
+    this.unsupportedNetworkNotificationId = Notification.show(
+      "Please switch to a supported network.",
+      "error",
+      { duration: 0 },
+    );
+  }
+
+  hideUnsupportedNetworkNotice() {
+    if (!this.unsupportedNetworkNotificationId) return;
+    Notification.hide(this.unsupportedNetworkNotificationId);
+    this.unsupportedNetworkNotificationId = null;
+  }
+
+  syncUnsupportedNetworkNotice(chainId) {
+    const normalized = normalizeChainId(chainId);
+    if (!Number.isFinite(normalized)) return;
+    this.isAllowed(normalized)
+      ? this.hideUnsupportedNetworkNotice()
+      : this.showUnsupportedNetworkNotice();
   }
 
   updateAddress(address) {
@@ -1115,6 +1146,7 @@ export class ConnectWallet {
       this.getCurrentChainId() ||
       chainIdToHex(this.networkConfigs.ethereum.chainId);
     this.updateNetworkStatus(storedChainId);
+    this.syncUnsupportedNetworkNotice(storedChainId);
 
     const providerDetail =
       this.isConnected() && this.getProviderDetail(this.getLastWallet());

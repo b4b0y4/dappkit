@@ -4,8 +4,6 @@ import { ConnectWallet, Notification, getRpcUrl } from "./libs/dappkit.js";
 const wallet = new ConnectWallet();
 
 document.addEventListener("DOMContentLoaded", () => {
-  let unsupportedNetworkNotificationId = null;
-
   wallet.onConnect((data) => {
     const account = data.accounts[0];
     const shortAccount = `${account.slice(0, 6)}...${account.slice(-4)}`;
@@ -19,25 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
     Notification.show("Wallet disconnected", "warning");
   });
 
-  wallet.onChainChange(({ chainId, name, allowed }) => {
-    if (!allowed) {
-      if (unsupportedNetworkNotificationId) {
-        Notification.hide(unsupportedNetworkNotificationId);
-      }
-      unsupportedNetworkNotificationId = Notification.show(
-        `Please switch to a supported network. Chain ${chainId} is not supported.`,
-        "error",
-        { duration: 0 },
-      );
-      return;
-    }
-
-    if (unsupportedNetworkNotificationId) {
-      Notification.hide(unsupportedNetworkNotificationId);
-      unsupportedNetworkNotificationId = null;
-    }
-
-    Notification.show(`Switched to ${name}`, "info");
+  wallet.onChainChange(({ name, allowed }) => {
+    if (allowed) Notification.show(`Switched to ${name}`, "info");
   });
 
   // Name resolution order: 'wns-first' or 'ens-first'
