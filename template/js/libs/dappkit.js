@@ -1,11 +1,7 @@
 import { ethers } from "./ethers.min.js";
 
-// ============================================================
-// WNS CONTRACT CONFIGURATION
-// ============================================================
-
+// WNS Contract
 const WNS_CONTRACT_ADDRESS = "0x0000000000696760E15f265e828DB644A0c242EB";
-
 const WNS_ABI = [
   {
     inputs: [{ internalType: "address", name: "addr", type: "address" }],
@@ -23,31 +19,21 @@ const WNS_ABI = [
   },
 ];
 
-// ============================================================
-// CONSTANTS & CONFIGURATION
-// ============================================================
-
+// Constants
 const STORAGE_KEYS = {
   CHAIN_ID: "connectCurrentChainId",
   LAST_WALLET: "connectLastWallet",
   IS_CONNECTED: "connectConnected",
 };
-
 const TIMINGS = {
   NOTIFICATION_DURATION: 5000,
   NOTIFICATION_HIDE_DELAY: 400,
   TRANSACTION_REMOVE_DELAY: 5000,
   COPY_FEEDBACK_DURATION: 2000,
 };
-
 const PROVIDER_EVENTS = ["accountsChanged", "chainChanged", "disconnect"];
-const CONNECT_STATE_KEYS = [
-  STORAGE_KEYS.CHAIN_ID,
-  STORAGE_KEYS.LAST_WALLET,
-  STORAGE_KEYS.IS_CONNECTED,
-];
+const CONNECT_STATE_KEYS = Object.values(STORAGE_KEYS);
 const ENS_EMPTY_RESULT = { name: null, avatar: null };
-
 const COPY_ICONS = {
   copy: `<svg class="copy-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
   success: '<polyline points="20 6 9 17 4 12"/>',
@@ -114,116 +100,71 @@ export const networkConfigs = {
   },
 };
 
-// ============================================================
-// HELPER FUNCTIONS
-// ============================================================
-
-function normalizeChainId(chainId) {
+// Helpers
+const normalizeChainId = (chainId) => {
   if (typeof chainId === "string") chainId = chainId.trim();
-  if (!chainId && chainId !== 0) return NaN;
   const parsed = Number(chainId);
   return Number.isFinite(parsed) ? parsed : NaN;
-}
-
-function chainIdToHex(chainId) {
-  const normalized = normalizeChainId(chainId);
-  if (!Number.isFinite(normalized)) return null;
-  return `0x${normalized.toString(16)}`;
-}
-
-function shortenMiddle(value, startChars, endChars) {
-  if (!value) return "";
-  return `${value.substring(0, startChars)}...${value.substring(value.length - endChars)}`;
-}
-
-function shortenAddress(address, startChars = 5, endChars = 4) {
-  return shortenMiddle(address, startChars, endChars);
-}
-
-function shortenHash(hash, startChars = 6, endChars = 4) {
-  return shortenMiddle(hash, startChars, endChars);
-}
-
-function escapeHtml(text) {
-  const div = document.createElement("div");
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function getVisibleNetworks() {
-  return Object.entries(networkConfigs).filter(([, config]) => config.showInUI);
-}
-
-function getNetworkByChainId(chainId) {
-  const normalized = normalizeChainId(chainId);
-  return Object.values(networkConfigs).find(
-    (net) => net.chainId === normalized,
+};
+const chainIdToHex = (chainId) => {
+  const n = normalizeChainId(chainId);
+  return Number.isFinite(n) ? `0x${n.toString(16)}` : null;
+};
+const shortenMiddle = (value, s, e) =>
+  value
+    ? `${value.substring(0, s)}...${value.substring(value.length - e)}`
+    : "";
+const shortenAddress = (addr, s = 5, e = 4) => shortenMiddle(addr, s, e);
+const shortenHash = (hash, s = 6, e = 4) => shortenMiddle(hash, s, e);
+const escapeHtml = (text) => {
+  const d = document.createElement("div");
+  d.textContent = text;
+  return d.innerHTML;
+};
+const getVisibleNetworks = () =>
+  Object.entries(networkConfigs).filter(([, c]) => c.showInUI);
+const getNetworkByChainId = (chainId) =>
+  Object.values(networkConfigs).find(
+    (n) => n.chainId === normalizeChainId(chainId),
   );
-}
-
-function hasChainChanged(previousChainId, nextChainId) {
-  const prev = normalizeChainId(previousChainId);
-  const next = normalizeChainId(nextChainId);
-  return Number.isFinite(next) && next !== prev;
-}
-
-export function getRpcUrl(network) {
-  const customRpc = localStorage.getItem(`${network}-rpc`);
-  return customRpc || networkConfigs[network].rpcUrl;
-}
-
-function getEthereumProvider() {
-  return new ethers.JsonRpcProvider(getRpcUrl("ethereum"));
-}
-
-function removeElementWithDelay(element, delay, onRemove) {
-  element.classList.add("hide");
+const hasChainChanged = (prev, next) => {
+  const n = normalizeChainId(next);
+  return Number.isFinite(n) && n !== normalizeChainId(prev);
+};
+export const getRpcUrl = (network) =>
+  localStorage.getItem(`${network}-rpc`) || networkConfigs[network].rpcUrl;
+const getEthereumProvider = () =>
+  new ethers.JsonRpcProvider(getRpcUrl("ethereum"));
+const removeElementWithDelay = (el, delay, onRemove) => {
+  el.classList.add("hide");
   setTimeout(() => {
-    element?.parentNode?.removeChild(element);
+    el?.parentNode?.removeChild(el);
     onRemove?.();
   }, delay);
-}
+};
+const onReady = (cb) =>
+  document.readyState === "loading"
+    ? document.addEventListener("DOMContentLoaded", cb)
+    : cb();
 
-function onReady(callback) {
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", callback);
-    return;
-  }
-  callback();
-}
-
-// ============================================================
-// RPC MODAL
-// ============================================================
-
+// RPC Modal
 const rpcModal = document.getElementById("rpc-modal");
-const rpcCloseBtn = document.getElementsByClassName("rpc-close-btn")[0];
-const rpcInputs = document.getElementById("rpc-inputs");
-const saveRpcBtn = document.getElementById("save-rpc-btn");
-
-function toggleRpcModal(show) {
-  rpcModal?.classList.toggle("show", show);
-}
+const toggleRpcModal = (show) => rpcModal?.classList.toggle("show", show);
 
 function populateRpcInputs() {
+  const rpcInputs = document.getElementById("rpc-inputs");
   if (!rpcInputs) return;
-
   rpcInputs.innerHTML = "";
-
-  getVisibleNetworks().forEach(([network, networkConfig]) => {
+  getVisibleNetworks().forEach(([network, cfg]) => {
     const div = document.createElement("div");
     const label = document.createElement("label");
-    label.innerText = networkConfig.name;
-
-    const input = document.createElement("input");
-    input.id = `${network}-rpc`;
-    input.placeholder = "Enter custom RPC URL";
-
-    const customRpc = localStorage.getItem(`${network}-rpc`);
-    if (customRpc) input.value = customRpc;
-
-    div.appendChild(label);
-    div.appendChild(input);
+    label.innerText = cfg.name;
+    const input = Object.assign(document.createElement("input"), {
+      id: `${network}-rpc`,
+      placeholder: "Enter custom RPC URL",
+      value: localStorage.getItem(`${network}-rpc`) || "",
+    });
+    div.append(label, input);
     rpcInputs.appendChild(div);
   });
 }
@@ -232,28 +173,24 @@ function saveRpcSettings() {
   getVisibleNetworks().forEach(([network]) => {
     const input = document.getElementById(`${network}-rpc`);
     if (!input) return;
-
-    if (input.value) {
-      localStorage.setItem(`${network}-rpc`, input.value);
-    } else {
-      localStorage.removeItem(`${network}-rpc`);
-    }
+    input.value
+      ? localStorage.setItem(`${network}-rpc`, input.value)
+      : localStorage.removeItem(`${network}-rpc`);
   });
-
   toggleRpcModal(false);
 }
 
-rpcCloseBtn?.addEventListener("click", () => toggleRpcModal(false));
-saveRpcBtn?.addEventListener("click", saveRpcSettings);
-
+document
+  .getElementsByClassName("rpc-close-btn")[0]
+  ?.addEventListener("click", () => toggleRpcModal(false));
+document
+  .getElementById("save-rpc-btn")
+  ?.addEventListener("click", saveRpcSettings);
 window.addEventListener("click", (e) => {
   if (e.target === rpcModal) toggleRpcModal(false);
 });
 
-// ============================================================
-// COPY TO CLIPBOARD
-// ============================================================
-
+// Copy to Clipboard
 class Copy {
   static initialized = false;
   static elements = new WeakSet();
@@ -261,86 +198,56 @@ class Copy {
   static init() {
     if (this.initialized) return;
     this.initialized = true;
-
     document.addEventListener("click", this.handleClick.bind(this), true);
-    this.setupObserver();
-    this.enhanceAll();
-  }
-
-  static setupObserver() {
-    this.observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
+    this.observer = new MutationObserver((mutations) =>
+      mutations.forEach((m) =>
+        m.addedNodes.forEach((node) => {
           if (node.nodeType !== 1) return;
-
           if (node.matches?.("[data-copy]")) this.enhance(node);
           node
             .querySelectorAll?.("[data-copy]")
             ?.forEach((el) => this.enhance(el));
-        });
-      });
-    });
-
+        }),
+      ),
+    );
     this.observer.observe(document.body, { childList: true, subtree: true });
-  }
-
-  static enhanceAll() {
     document.querySelectorAll("[data-copy]").forEach((el) => this.enhance(el));
   }
 
   static enhance(el) {
     if (this.elements.has(el)) return;
-
     el.title ||= "Click to copy";
-
-    if (!el.querySelector(".copy-icon-svg")) {
+    if (!el.querySelector(".copy-icon-svg"))
       el.insertAdjacentHTML("beforeend", COPY_ICONS.copy);
-    }
-
     this.elements.add(el);
   }
 
   static handleClick(e) {
     const el = e.target.closest("[data-copy]");
     if (!el) return;
-
     e.preventDefault();
     e.stopPropagation();
-
-    const text = el.getAttribute("data-copy");
-    this.copy(text, el);
+    this.copy(el.getAttribute("data-copy"), el);
   }
 
   static async copy(text, el) {
-    try {
-      await navigator.clipboard.writeText(text);
-      this.showFeedback(el, true);
-      return true;
-    } catch (err) {
-      console.warn("Copy failed:", err);
-      this.showFeedback(el, false);
-      return false;
-    }
-  }
-
-  static showFeedback(el, success) {
-    if (!el) return;
-
+    const success = await navigator.clipboard
+      .writeText(text)
+      .then(() => true)
+      .catch(() => false);
+    if (!el) return success;
     const svg = el.querySelector("svg");
-    if (!svg) return;
-
-    const prevInner = svg.innerHTML;
-    const prevTitle = el.title;
-
+    if (!svg) return success;
+    const [prevInner, prevTitle] = [svg.innerHTML, el.title];
     svg.innerHTML = success ? COPY_ICONS.success : COPY_ICONS.error;
     el.title = success ? "Copied!" : "Copy failed";
     el.classList.add(success ? "copy-success" : "copy-error");
-
     setTimeout(() => {
       svg.innerHTML = prevInner;
       el.title = prevTitle || "Click to copy";
       el.classList.remove("copy-success", "copy-error");
     }, TIMINGS.COPY_FEEDBACK_DURATION);
+    return success;
   }
 
   static destroy() {
@@ -351,10 +258,7 @@ class Copy {
 
 onReady(() => Copy.init());
 
-// ============================================================
-// NOTIFICATIONS
-// ============================================================
-
+// Notifications
 export class Notification {
   static container = null;
   static notifications = new Map();
@@ -364,21 +268,19 @@ export class Notification {
 
   static init() {
     if (this.initialized) return;
-
-    this.container = document.getElementById("notificationContainer");
-
-    if (!this.container) {
-      this.container = document.createElement("div");
-      this.container.id = "notificationContainer";
-      document.body.appendChild(this.container);
-    }
-
+    this.container =
+      document.getElementById("notificationContainer") ||
+      (() => {
+        const el = document.createElement("div");
+        el.id = "notificationContainer";
+        document.body.appendChild(el);
+        return el;
+      })();
     this.initialized = true;
   }
 
   static show(message, type = "info", options = {}) {
     this.init();
-
     const config = {
       duration: TIMINGS.NOTIFICATION_DURATION,
       closable: true,
@@ -386,55 +288,25 @@ export class Notification {
       html: false,
       ...options,
     };
-
     const id = ++this.idCounter;
-    const notification = this.createNotification(id, message, type, config);
-
-    this.notifications.set(id, {
-      element: notification,
-      config,
-      timeoutId: null,
-    });
-
-    this.container.appendChild(notification);
-    requestAnimationFrame(() => notification.classList.add("show"));
-
-    if (config.duration > 0) {
-      this.scheduleHide(id, config.duration);
-    }
-
-    return id;
-  }
-
-  static createNotification(id, message, type, config) {
-    const notification = document.createElement("div");
-    notification.className = `notification ${type}`;
-    notification.setAttribute("data-id", id);
-
+    const el = document.createElement("div");
+    el.className = `notification ${type}`;
+    el.setAttribute("data-id", id);
     const safeMessage = config.html ? message : escapeHtml(message);
-
-    notification.innerHTML = `
-      <div class="notif-content">
-        <div class="notif-message">
-          <span>${safeMessage}</span>
-        </div>
-        ${config.closable ? `<button class="notif-close">&times;</button>` : ""}
-        ${config.showProgress && config.duration > 0 ? `<div class="progress-bar" style="animation-duration: ${config.duration}ms"></div>` : ""}
-      </div>
-    `;
-
-    if (config.closable) {
-      notification
-        .querySelector(".notif-close")
-        .addEventListener("click", () => this.hide(id));
-    }
-
-    return notification;
+    el.innerHTML = `<div class="notif-content"><div class="notif-message"><span>${safeMessage}</span></div>${config.closable ? `<button class="notif-close">&times;</button>` : ""}${config.showProgress && config.duration > 0 ? `<div class="progress-bar" style="animation-duration: ${config.duration}ms"></div>` : ""}</div>`;
+    if (config.closable)
+      el.querySelector(".notif-close").addEventListener("click", () =>
+        this.hide(id),
+      );
+    this.notifications.set(id, { element: el, config, timeoutId: null });
+    this.container.appendChild(el);
+    requestAnimationFrame(() => el.classList.add("show"));
+    if (config.duration > 0) this.scheduleHide(id, config.duration);
+    return id;
   }
 
   static track(tx, options = {}) {
     this.init();
-
     const config = {
       label: "Transaction",
       onPending: null,
@@ -444,126 +316,77 @@ export class Notification {
       removeDelay: TIMINGS.TRANSACTION_REMOVE_DELAY,
       ...options,
     };
-
     const id = tx.hash;
     if (this.transactions.has(id)) return id;
-
-    const txElement = this.createTransaction(
-      id,
-      tx.hash,
-      Number(tx.chainId),
-      config,
-    );
-    this.container.appendChild(txElement);
-
-    this.transactions.set(id, {
-      element: txElement,
-      config,
-      status: "pending",
-      tx,
-    });
-
-    requestAnimationFrame(() => txElement.classList.add("show"));
-    this.watchTransaction(id, config);
-
-    return id;
-  }
-
-  static createTransaction(id, txHash, chainId, config) {
-    const tx = document.createElement("div");
-    tx.className = "notification tx-notification pending";
-    tx.setAttribute("data-id", id);
-
-    const explorerUrl = this.getExplorerUrl(txHash, chainId);
-
-    tx.innerHTML = `
-      <div class="notif-content">
-        <div class="tx-icon">
-          <div class="tx-spinner"></div>
-        </div>
-        <div class="tx-details">
-          <div class="tx-label">${escapeHtml(config.label)}</div>
-          <div class="tx-hash">
-            <a href="${explorerUrl}" target="_blank" rel="noopener noreferrer">${shortenHash(txHash)}</a>
-          </div>
-        </div>
-        <div class="tx-status">Pending</div>
-        <button class="notif-close">&times;</button>
-      </div>
-    `;
-
-    tx.querySelector(".notif-close").addEventListener("click", () =>
+    const chainId = Number(tx.chainId);
+    const explorerUrl =
+      getNetworkByChainId(chainId)?.explorerUrl ?? "https://etherscan.io/tx/";
+    const el = document.createElement("div");
+    el.className = "notification tx-notification pending";
+    el.setAttribute("data-id", id);
+    el.innerHTML = `<div class="notif-content"><div class="tx-icon"><div class="tx-spinner"></div></div><div class="tx-details"><div class="tx-label">${escapeHtml(config.label)}</div><div class="tx-hash"><a href="${explorerUrl}${tx.hash}" target="_blank" rel="noopener noreferrer">${shortenHash(tx.hash)}</a></div></div><div class="tx-status">Pending</div><button class="notif-close">&times;</button></div>`;
+    el.querySelector(".notif-close").addEventListener("click", () =>
       this.removeTransaction(id),
     );
-
-    return tx;
-  }
-
-  static getExplorerUrl(txHash, chainId) {
-    const network = getNetworkByChainId(chainId);
-    return network?.explorerUrl
-      ? `${network.explorerUrl}${txHash}`
-      : `https://etherscan.io/tx/${txHash}`;
+    this.transactions.set(id, { element: el, config, status: "pending", tx });
+    this.container.appendChild(el);
+    requestAnimationFrame(() => el.classList.add("show"));
+    this.watchTransaction(id, config);
+    return id;
   }
 
   static async watchTransaction(id, config) {
     const txData = this.transactions.get(id);
     if (!txData) return;
-
     try {
       config.onPending?.(txData.tx.hash);
-
       const receipt = await txData.tx.wait();
       if (!this.transactions.has(id)) return;
-
-      if (receipt.status === 1) {
-        this.updateTransactionStatus(id, "success", "Confirmed");
-        config.onSuccess?.(receipt);
-      } else {
-        this.updateTransactionStatus(id, "failed", "Failed");
-        config.onError?.(new Error("Transaction failed"));
-      }
+      const ok = receipt.status === 1;
+      this.updateTransactionStatus(
+        id,
+        ok ? "success" : "failed",
+        ok ? "Confirmed" : "Failed",
+      );
+      ok
+        ? config.onSuccess?.(receipt)
+        : config.onError?.(new Error("Transaction failed"));
     } catch (error) {
-      if (!this.transactions.has(id)) return;
-
-      this.updateTransactionStatus(id, "failed", "Failed");
-      config.onError?.(error);
-    } finally {
-      if (config.autoRemove && this.transactions.has(id)) {
-        setTimeout(() => this.removeTransaction(id), config.removeDelay);
+      if (this.transactions.has(id)) {
+        this.updateTransactionStatus(id, "failed", "Failed");
+        config.onError?.(error);
       }
+    } finally {
+      if (config.autoRemove && this.transactions.has(id))
+        setTimeout(() => this.removeTransaction(id), config.removeDelay);
     }
   }
 
   static updateTransactionStatus(id, status, statusText) {
     const txData = this.transactions.get(id);
     if (!txData) return;
-
     txData.status = status;
     txData.element.classList.remove("pending", "success", "failed");
     txData.element.classList.add(status);
-
     const statusEl = txData.element.querySelector(".tx-status");
     if (statusEl) statusEl.textContent = statusText;
-
-    const spinner = txData.element.querySelector(".tx-spinner");
-    if (spinner && status !== "pending") spinner.remove();
+    if (status !== "pending")
+      txData.element.querySelector(".tx-spinner")?.remove();
   }
 
   static removeTransaction(id) {
     const txData = this.transactions.get(id);
-    if (!txData) return;
-    removeElementWithDelay(
-      txData.element,
-      TIMINGS.NOTIFICATION_HIDE_DELAY,
-      () => this.transactions.delete(id),
-    );
+    if (txData)
+      removeElementWithDelay(
+        txData.element,
+        TIMINGS.NOTIFICATION_HIDE_DELAY,
+        () => this.transactions.delete(id),
+      );
   }
 
   static hide(id) {
     const notif = this.notifications.get(id);
     if (!notif) return;
-
     if (notif.timeoutId) clearTimeout(notif.timeoutId);
     removeElementWithDelay(notif.element, TIMINGS.NOTIFICATION_HIDE_DELAY, () =>
       this.notifications.delete(id),
@@ -572,25 +395,19 @@ export class Notification {
 
   static scheduleHide(id, delay) {
     const notif = this.notifications.get(id);
-    if (notif) {
-      notif.timeoutId = setTimeout(() => this.hide(id), delay);
-    }
+    if (notif) notif.timeoutId = setTimeout(() => this.hide(id), delay);
   }
 
   static clearTransactions() {
     this.transactions.forEach((_, id) => this.removeTransaction(id));
   }
-
   static clearAll() {
     this.notifications.forEach((_, id) => this.hide(id));
     this.transactions.forEach((_, id) => this.removeTransaction(id));
   }
 }
 
-// ============================================================
-// WALLET CONNECTION
-// ============================================================
-
+// Wallet Connection
 export class ConnectWallet {
   constructor(options = {}) {
     this.networkConfigs = options.networkConfigs || networkConfigs;
@@ -615,15 +432,6 @@ export class ConnectWallet {
   }
 
   init() {
-    this.discoverElements();
-    this.bindEvents();
-    this.setupUIEvents();
-    this.requestProviders();
-    this.restoreState();
-    this.render();
-  }
-
-  discoverElements() {
     this.elements = {
       connectBtn: document.querySelector("#connect-btn"),
       connectModal: document.querySelector("#connect-modal"),
@@ -631,6 +439,21 @@ export class ConnectWallet {
       connectWalletList: document.querySelector("#connect-wallet-list"),
       connectRpc: document.querySelector("#connect-rpc"),
     };
+    this.bindEvents();
+    this.setupUIEvents();
+    this.requestProviders();
+    this.initializing = true;
+    this.restoreState();
+    this.render();
+    setTimeout(async () => {
+      await this.verifyConnectionState({
+        allowUiDisconnect: true,
+        retries: 2,
+        retryDelayMs: 500,
+      });
+      this.initializing = false;
+      this.syncUnsupportedNetworkNotice(this.getCurrentChainId());
+    }, 300);
   }
 
   isAllowed(chainId) {
@@ -638,33 +461,36 @@ export class ConnectWallet {
   }
 
   bindEvents() {
-    window.addEventListener("eip6963:announceProvider", (event) =>
-      this.handleProviderAnnounce(event),
+    window.addEventListener("eip6963:announceProvider", (e) =>
+      this.handleProviderAnnounce(e),
     );
-    window.addEventListener("focus", () =>
-      this.verifyConnectionState({ allowUiDisconnect: true, retries: 1 }),
-    );
+    const onVisible = () =>
+      setTimeout(
+        () =>
+          this.verifyConnectionState({
+            allowUiDisconnect: true,
+            retries: 2,
+            retryDelayMs: 500,
+          }),
+        300,
+      );
+    window.addEventListener("focus", onVisible);
     document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState !== "visible") return;
-      this.verifyConnectionState({ allowUiDisconnect: true, retries: 1 });
+      if (document.visibilityState === "visible") onVisible();
     });
   }
 
   setupUIEvents() {
-    if (this.elements.connectBtn) {
-      this.elements.connectBtn.addEventListener("click", (event) => {
-        if (event.target.closest("[data-copy]")) return;
-        event.stopPropagation();
+    this.elements.connectBtn?.addEventListener("click", (e) => {
+      if (!e.target.closest("[data-copy]")) {
+        e.stopPropagation();
         this.toggleModal();
-      });
-    }
-
-    this.elements.connectModal?.addEventListener("click", (event) => {
-      event.stopPropagation();
+      }
     });
-
+    this.elements.connectModal?.addEventListener("click", (e) =>
+      e.stopPropagation(),
+    );
     document.addEventListener("click", () => this.hideModal());
-
     this.elements.connectRpc?.addEventListener("click", () => {
       populateRpcInputs();
       toggleRpcModal(true);
@@ -677,66 +503,52 @@ export class ConnectWallet {
   }
 
   setStorageState(key, value) {
-    if (value === null || value === undefined || value === "") {
-      this.storage.removeItem(key);
-      return;
-    }
-    this.storage.setItem(key, value);
+    value === null || value === undefined || value === ""
+      ? this.storage.removeItem(key)
+      : this.storage.setItem(key, value);
   }
 
-  handleProviderAnnounce(event) {
-    const { detail: providerDetail } = event;
-    const providerName = providerDetail.info.name;
-    const exists = this.providers.some((p) => p.info.name === providerName);
-    if (exists) return;
-
-    this.providers.push(providerDetail);
+  handleProviderAnnounce({ detail }) {
+    if (this.providers.some((p) => p.info.name === detail.info.name)) return;
+    this.providers.push(detail);
     this.render();
-
-    if (this.isConnected() && this.getLastWallet() === providerName) {
-      this.syncConnectedProviderState(providerDetail);
-    }
+    if (this.isConnected() && this.getLastWallet() === detail.info.name)
+      this.syncConnectedProviderState(detail);
   }
 
-  async requestProviderState(provider, accountMethod = "eth_accounts") {
+  requestProviderState(provider, method = "eth_accounts") {
     return Promise.all([
-      provider.request({ method: accountMethod }),
+      provider.request({ method }),
       provider.request({ method: "eth_chainId" }),
     ]);
   }
 
   createButton(config, onClick) {
-    const button = document.createElement("button");
-    button.innerHTML = `<img src="${config.icon}">${config.name}<span class="connect-dot" style="display: none"></span>`;
-    button.onclick = onClick;
-    return button;
+    const btn = document.createElement("button");
+    btn.innerHTML = `<img src="${config.icon}">${config.name}<span class="connect-dot" style="display: none"></span>`;
+    btn.onclick = onClick;
+    return btn;
   }
 
   async connectWallet(name) {
     const provider = this.getProviderDetail(name);
     if (!provider) return;
-
     try {
       const [accounts, chainId] = await this.requestProviderState(
         provider.provider,
         "eth_requestAccounts",
       );
-
       this.setupProviderEvents(provider);
       this.applyConnectedState({
         accounts,
         chainId,
         providerName: provider.info.name,
       });
-
-      if (this.onConnectCallback) {
-        this.onConnectCallback({
-          accounts,
-          chainId,
-          provider: provider.info.name,
-        });
-      }
-
+      this.onConnectCallback?.({
+        accounts,
+        chainId,
+        provider: provider.info.name,
+      });
       return { accounts, chainId, provider: provider.provider };
     } catch (error) {
       console.error("Connection failed:", error);
@@ -746,9 +558,7 @@ export class ConnectWallet {
 
   setupProviderEvents(provider) {
     if (this.currentProvider === provider.provider) return;
-
     this.removeProviderEvents();
-
     this.currentProvider = provider.provider;
     const recover = () =>
       this.verifyConnectionState({ allowUiDisconnect: true, retries: 2 });
@@ -758,34 +568,29 @@ export class ConnectWallet {
       chainChanged: (chainId) => this.handleChainChanged(chainId),
       disconnect: recover,
     };
-
     if (typeof this.currentProvider?.on !== "function") return;
-    PROVIDER_EVENTS.forEach((eventName) => {
-      this.currentProvider.on(eventName, this.providerListeners[eventName]);
-    });
+    PROVIDER_EVENTS.forEach((event) =>
+      this.currentProvider.on(event, this.providerListeners[event]),
+    );
   }
 
   removeProviderEvents() {
     if (!this.currentProvider || !this.providerListeners) return;
-
     if (typeof this.currentProvider.removeListener === "function") {
-      PROVIDER_EVENTS.forEach((eventName) => {
+      PROVIDER_EVENTS.forEach((event) =>
         this.currentProvider.removeListener(
-          eventName,
-          this.providerListeners[eventName],
-        );
-      });
-      return;
+          event,
+          this.providerListeners[event],
+        ),
+      );
+    } else {
+      this.currentProvider.removeAllListeners?.();
     }
-
-    this.currentProvider.removeAllListeners?.();
   }
 
   async syncConnectedProviderState(providerDetail) {
     if (!providerDetail?.provider) return;
-
     this.setupProviderEvents(providerDetail);
-
     try {
       const [accounts, chainId] = await this.requestProviderState(
         providerDetail.provider,
@@ -801,101 +606,78 @@ export class ConnectWallet {
   }
 
   applyDisconnectedState() {
-    const hadConnectedState =
+    const hadState =
       this.storage.getItem(STORAGE_KEYS.IS_CONNECTED) === "true" ||
       Boolean(this.getLastWallet()) ||
       Boolean(this.getCurrentChainId());
-    if (!hadConnectedState) return;
-
+    if (!hadState) return;
     this.removeProviderEvents();
     this.currentProvider = null;
     this.providerListeners = null;
-
     CONNECT_STATE_KEYS.forEach((key) => this.storage.removeItem(key));
-
-    if (this.onDisconnectCallback) {
-      this.onDisconnectCallback();
-    }
-
+    this.onDisconnectCallback?.();
     if (this.elements.connectBtn) {
       this.elements.connectBtn.innerHTML = "Connect";
       this.elements.connectBtn.classList.remove("connected", "name-resolved");
     }
-
     this.elements.connectModal?.classList.remove("show");
     this.render();
   }
 
-  async verifyConnectionState(options = {}) {
-    const {
-      allowUiDisconnect = false,
-      retries = 0,
-      retryDelayMs = 250,
-    } = options;
+  async verifyConnectionState({
+    allowUiDisconnect = false,
+    retries = 0,
+    retryDelayMs = 250,
+  } = {}) {
     const provider = this.currentProvider || this.getConnectedProvider();
     if (!provider) return;
-
-    for (let attempt = 0; attempt <= retries; attempt += 1) {
+    for (let attempt = 0; attempt <= retries; attempt++) {
       try {
         const [accounts, chainId] = await this.requestProviderState(provider);
         if (Array.isArray(accounts) && accounts.length > 0) {
-          const previousChainId = this.getCurrentChainId();
-
+          const prevChainId = this.getCurrentChainId();
           this.applyConnectedState({
             accounts,
             chainId,
             providerName: this.getLastWallet(),
             render: false,
           });
-
-          if (hasChainChanged(previousChainId, chainId)) {
+          if (hasChainChanged(prevChainId, chainId))
             this.emitChainChange(chainId);
-          }
           this.render();
           return;
         }
       } catch {}
-
       if (attempt < retries) {
-        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
+        await new Promise((r) => setTimeout(r, retryDelayMs));
         continue;
       }
-
-      if (allowUiDisconnect) {
-        this.applyDisconnectedState();
-      }
-      return;
+      if (allowUiDisconnect) this.applyDisconnectedState();
     }
   }
 
   handleChainChanged(chainId) {
-    const previousChainId = this.getCurrentChainId();
+    const prev = this.getCurrentChainId();
     this.updateNetworkStatus(chainId);
     this.syncUnsupportedNetworkNotice(chainId);
-    if (hasChainChanged(previousChainId, chainId)) {
-      this.emitChainChange(chainId);
-    }
+    if (hasChainChanged(prev, chainId)) this.emitChainChange(chainId);
     this.render();
   }
 
   emitChainChange(chainId) {
     if (!this.onChainChangeCallback) return;
     const normalized = normalizeChainId(chainId);
-    const name = this.chainIdToName[normalized] || `Unknown (${chainId})`;
-    const allowed = this.isAllowed(chainId);
-
     this.onChainChangeCallback({
       chainId: normalized,
       hexChainId: chainIdToHex(normalized),
-      name,
-      allowed,
+      name: this.chainIdToName[normalized] || `Unknown (${chainId})`,
+      allowed: this.isAllowed(chainId),
     });
   }
 
   applyConnectedState({ accounts, chainId, providerName, render = true }) {
     const account = Array.isArray(accounts) ? accounts[0] : null;
     if (!account) return;
-
     this.setStorageState(STORAGE_KEYS.IS_CONNECTED, "true");
     this.setStorageState(STORAGE_KEYS.LAST_WALLET, providerName);
     this.updateAddress(account);
@@ -905,10 +687,9 @@ export class ConnectWallet {
   }
 
   showUnsupportedNetworkNotice() {
-    if (!this.showUnsupportedNetworkNotification) return;
-    if (this.unsupportedNetworkNotificationId) {
+    if (!this.showUnsupportedNetworkNotification || this.initializing) return;
+    if (this.unsupportedNetworkNotificationId)
       Notification.hide(this.unsupportedNetworkNotificationId);
-    }
     this.unsupportedNetworkNotificationId = Notification.show(
       "Please switch to a supported network.",
       "error",
@@ -923,21 +704,17 @@ export class ConnectWallet {
   }
 
   syncUnsupportedNetworkNotice(chainId) {
-    const normalized = normalizeChainId(chainId);
-    if (!Number.isFinite(normalized)) return;
-    this.isAllowed(normalized)
+    const n = normalizeChainId(chainId);
+    if (!Number.isFinite(n)) return;
+    this.isAllowed(n)
       ? this.hideUnsupportedNetworkNotice()
       : this.showUnsupportedNetworkNotice();
   }
 
   updateAddress(address) {
     if (!this.elements.connectBtn) return;
-
     const short = shortenAddress(address);
-    this.elements.connectBtn.innerHTML = `
-      <span class="connect-address-text">${short}</span>
-      <span class="connect-copy-btn" data-copy="${address}"></span>
-    `;
+    this.elements.connectBtn.innerHTML = `<span class="connect-address-text">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span>`;
     this.elements.connectBtn.classList.add("connected");
     this.elements.connectBtn.classList.remove("name-resolved");
     this.elements.connectBtn.setAttribute("data-address", address);
@@ -946,13 +723,12 @@ export class ConnectWallet {
 
   async resolveWNS(address) {
     try {
-      const wnsContract = new ethers.Contract(
+      const name = await new ethers.Contract(
         WNS_CONTRACT_ADDRESS,
         WNS_ABI,
         getEthereumProvider(),
-      );
-      const wnsName = await wnsContract.reverseResolve(address);
-      return wnsName || null;
+      ).reverseResolve(address);
+      return name || null;
     } catch {
       return null;
     }
@@ -960,12 +736,10 @@ export class ConnectWallet {
 
   async resolveENS(address) {
     try {
-      const mainnetProvider = getEthereumProvider();
-      const ensName = await mainnetProvider.lookupAddress(address);
+      const provider = getEthereumProvider();
+      const ensName = await provider.lookupAddress(address);
       if (!ensName) return ENS_EMPTY_RESULT;
-
-      const avatar = await mainnetProvider.getAvatar(ensName);
-      return { name: ensName, avatar };
+      return { name: ensName, avatar: await provider.getAvatar(ensName) };
     } catch {
       return ENS_EMPTY_RESULT;
     }
@@ -973,9 +747,8 @@ export class ConnectWallet {
 
   async resolveName(address) {
     if (!this.elements.connectBtn) return;
-
     const short = shortenAddress(address);
-    const resolutionOrder =
+    const order =
       this.nameResolutionOrder === "wns-first"
         ? ["wns", "ens"]
         : ["ens", "wns"];
@@ -989,31 +762,14 @@ export class ConnectWallet {
         return name ? { name, avatar, source: "ens" } : null;
       },
     };
-    let resolved = null;
-
     try {
-      for (const source of resolutionOrder) {
+      let resolved = null;
+      for (const source of order) {
         resolved = await resolvers[source]();
         if (resolved) break;
       }
-
       if (!resolved?.name) return;
-
-      let buttonContent = `
-        <div class="name-details">
-          <div class="resolved-name">${resolved.name}</div>
-          <div class="named-address-row">
-            <span class="named-address">${short}</span>
-            <span class="connect-copy-btn" data-copy="${address}"></span>
-          </div>
-        </div>
-      `;
-
-      if (resolved.avatar) {
-        buttonContent += `<img src="${resolved.avatar}" style="border-radius: 50%">`;
-      }
-
-      this.elements.connectBtn.innerHTML = buttonContent;
+      this.elements.connectBtn.innerHTML = `<div class="name-details"><div class="resolved-name">${resolved.name}</div><div class="named-address-row"><span class="named-address">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span></div></div>${resolved.avatar ? `<img src="${resolved.avatar}" style="border-radius: 50%">` : ""}`;
       this.elements.connectBtn.classList.add("name-resolved");
       this.elements.connectBtn.setAttribute("data-address", address);
       this.elements.connectBtn.setAttribute(
@@ -1026,12 +782,10 @@ export class ConnectWallet {
   async switchNetwork(networkConfig) {
     const provider = this.getConnectedProvider();
     if (!provider) return;
-
     try {
-      const chainIdHex = chainIdToHex(networkConfig.chainId);
       await provider.request({
         method: "wallet_switchEthereumChain",
-        params: [{ chainId: chainIdHex }],
+        params: [{ chainId: chainIdToHex(networkConfig.chainId) }],
       });
       this.hideModal();
       this.updateNetworkStatus(networkConfig.chainId);
@@ -1043,30 +797,26 @@ export class ConnectWallet {
   }
 
   updateNetworkStatus(chainId) {
-    const normalized = normalizeChainId(chainId);
-    if (!Number.isFinite(normalized)) return;
-    this.setStorageState(STORAGE_KEYS.CHAIN_ID, chainIdToHex(normalized));
+    const n = normalizeChainId(chainId);
+    if (Number.isFinite(n))
+      this.setStorageState(STORAGE_KEYS.CHAIN_ID, chainIdToHex(n));
   }
 
   async disconnect() {
-    const provider = this.getConnectedProvider();
-
     try {
-      await provider?.request({
+      await this.getConnectedProvider()?.request({
         method: "wallet_revokePermissions",
         params: [{ eth_accounts: {} }],
       });
     } catch (error) {
       console.error("Disconnect failed:", error);
     }
-
     this.applyDisconnectedState();
   }
 
   toggleModal() {
     this.elements.connectModal?.classList.toggle("show");
   }
-
   hideModal() {
     this.elements.connectModal?.classList.remove("show");
   }
@@ -1074,71 +824,49 @@ export class ConnectWallet {
   render() {
     this.renderWalletProviders();
     this.renderChainList();
-    this.renderGetWallet();
+    const getWalletEl = document.querySelector("#connect-get-wallet");
+    if (getWalletEl)
+      getWalletEl.style.display = this.providers.length ? "none" : "block";
   }
 
   renderWalletProviders() {
     if (!this.elements.connectWalletList) return;
-
     this.elements.connectWalletList.innerHTML = "";
-
     this.providers.forEach((provider) => {
-      const button = this.createButton(provider.info, () => {
+      const btn = this.createButton(provider.info, () => {
         this.hideModal();
         this.connectWallet(provider.info.name);
       });
-
-      const isConnected = provider.info.name === this.getLastWallet();
-      button.querySelector(".connect-dot").style.display = isConnected
-        ? "inline-block"
-        : "none";
-
-      this.elements.connectWalletList.appendChild(button);
+      btn.querySelector(".connect-dot").style.display =
+        provider.info.name === this.getLastWallet() ? "inline-block" : "none";
+      this.elements.connectWalletList.appendChild(btn);
     });
   }
 
   renderChainList() {
     if (!this.elements.connectChainList) return;
-
     this.elements.connectChainList.innerHTML = "";
     const currentChainId = normalizeChainId(this.getCurrentChainId());
     const isConnected = this.isConnected();
-    const networksToShow = getVisibleNetworks();
-    const isSingleNetwork = networksToShow.length === 1;
-
-    this.elements.connectChainList.classList.toggle(
-      "single-network",
-      isSingleNetwork,
-    );
-
-    networksToShow.forEach(([networkName, networkConfig]) => {
-      const button = document.createElement("button");
-      button.id = `connect-${networkName}`;
-      button.title = networkConfig.name;
-      button.classList.toggle("chain-single", isSingleNetwork);
-      button.innerHTML = isSingleNetwork
-        ? `<img src="${networkConfig.icon}" alt="${networkConfig.name}"><span class="connect-name">${networkConfig.name}</span>`
-        : `<img src="${networkConfig.icon}" alt="${networkConfig.name}">`;
-
-      button.onclick = () => this.switchNetwork(networkConfig);
-
-      const indicator = document.createElement("span");
-      indicator.className = `connect-dot${isSingleNetwork ? "" : "-icon"}`;
-      button.appendChild(indicator);
-
-      indicator.style.display =
-        isConnected && networkConfig.chainId === currentChainId
-          ? "inline-block"
-          : "none";
-
-      this.elements.connectChainList.appendChild(button);
+    const networks = getVisibleNetworks();
+    const single = networks.length === 1;
+    this.elements.connectChainList.classList.toggle("single-network", single);
+    networks.forEach(([networkName, cfg]) => {
+      const btn = document.createElement("button");
+      btn.id = `connect-${networkName}`;
+      btn.title = cfg.name;
+      btn.classList.toggle("chain-single", single);
+      btn.innerHTML = single
+        ? `<img src="${cfg.icon}" alt="${cfg.name}"><span class="connect-name">${cfg.name}</span>`
+        : `<img src="${cfg.icon}" alt="${cfg.name}">`;
+      btn.onclick = () => this.switchNetwork(cfg);
+      const dot = document.createElement("span");
+      dot.className = `connect-dot${single ? "" : "-icon"}`;
+      dot.style.display =
+        isConnected && cfg.chainId === currentChainId ? "inline-block" : "none";
+      btn.appendChild(dot);
+      this.elements.connectChainList.appendChild(btn);
     });
-  }
-
-  renderGetWallet() {
-    const getWalletEl = document.querySelector("#connect-get-wallet");
-    if (getWalletEl)
-      getWalletEl.style.display = this.providers.length ? "none" : "block";
   }
 
   restoreState() {
@@ -1147,7 +875,6 @@ export class ConnectWallet {
       chainIdToHex(this.networkConfigs.ethereum.chainId);
     this.updateNetworkStatus(storedChainId);
     this.syncUnsupportedNetworkNotice(storedChainId);
-
     const providerDetail =
       this.isConnected() && this.getProviderDetail(this.getLastWallet());
     if (providerDetail) this.syncConnectedProviderState(providerDetail);
@@ -1156,31 +883,27 @@ export class ConnectWallet {
   isConnected() {
     return this.storage.getItem(STORAGE_KEYS.IS_CONNECTED) === "true";
   }
-
   getCurrentChainId() {
     return this.storage.getItem(STORAGE_KEYS.CHAIN_ID);
   }
-
   getLastWallet() {
     return this.storage.getItem(STORAGE_KEYS.LAST_WALLET);
   }
-
   getProviderDetail(name) {
-    if (!name) return null;
-    return this.providers.find((p) => p.info.name === name) || null;
+    return name
+      ? this.providers.find((p) => p.info.name === name) || null
+      : null;
   }
-
   getConnectedProvider() {
     return this.getProviderDetail(this.getLastWallet())?.provider;
   }
 
   async getAccount() {
-    const provider = this.getConnectedProvider();
-    if (!provider) return null;
-
     try {
-      const accounts = await provider.request({ method: "eth_accounts" });
-      return accounts[0] || null;
+      const accounts = await this.getConnectedProvider()?.request({
+        method: "eth_accounts",
+      });
+      return accounts?.[0] || null;
     } catch (error) {
       console.error("Failed to get account:", error);
       return null;
@@ -1188,12 +911,10 @@ export class ConnectWallet {
   }
 
   async getChainId() {
-    const provider = this.getConnectedProvider();
-    if (!provider) return null;
-
     try {
-      const raw = await provider.request({ method: "eth_chainId" });
-      return normalizeChainId(raw);
+      return normalizeChainId(
+        await this.getConnectedProvider()?.request({ method: "eth_chainId" }),
+      );
     } catch (error) {
       console.error("Failed to get chain ID:", error);
       return null;
@@ -1203,22 +924,18 @@ export class ConnectWallet {
   getProvider() {
     return this.getConnectedProvider();
   }
-
   getEthersProvider() {
-    const provider = this.getConnectedProvider();
-    return provider ? new ethers.BrowserProvider(provider) : null;
+    const p = this.getConnectedProvider();
+    return p ? new ethers.BrowserProvider(p) : null;
   }
-
-  onConnect(callback) {
-    this.onConnectCallback = callback;
+  onConnect(cb) {
+    this.onConnectCallback = cb;
   }
-
-  onDisconnect(callback) {
-    this.onDisconnectCallback = callback;
+  onDisconnect(cb) {
+    this.onDisconnectCallback = cb;
   }
-
-  onChainChange(callback) {
-    this.onChainChangeCallback = callback;
+  onChainChange(cb) {
+    this.onChainChangeCallback = cb;
   }
 
   setNameResolutionOrder(order) {
@@ -1228,12 +945,9 @@ export class ConnectWallet {
       );
       return;
     }
-
     this.nameResolutionOrder = order;
-
-    if (this.isConnected()) {
-      this.getAccount().then((address) => address && this.resolveName(address));
-    }
+    if (this.isConnected())
+      this.getAccount().then((addr) => addr && this.resolveName(addr));
   }
 
   getNameResolutionOrder() {
