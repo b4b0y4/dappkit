@@ -40,6 +40,14 @@ const TIMINGS = {
   COPY_FEEDBACK_DURATION: 2000,
 };
 
+const PROVIDER_EVENTS = ["accountsChanged", "chainChanged", "disconnect"];
+const CONNECT_STATE_KEYS = [
+  STORAGE_KEYS.CHAIN_ID,
+  STORAGE_KEYS.LAST_WALLET,
+  STORAGE_KEYS.IS_CONNECTED,
+];
+const ENS_EMPTY_RESULT = { name: null, avatar: null };
+
 const COPY_ICONS = {
   copy: `<svg class="copy-icon-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`,
   success: '<polyline points="20 6 9 17 4 12"/>',
@@ -151,6 +159,12 @@ function getNetworkByChainId(chainId) {
   return Object.values(networkConfigs).find(
     (net) => net.chainId === normalized,
   );
+}
+
+function hasChainChanged(previousChainId, nextChainId) {
+  const prev = normalizeChainId(previousChainId);
+  const next = normalizeChainId(nextChainId);
+  return Number.isFinite(next) && next !== prev;
 }
 
 export function getRpcUrl(network) {
@@ -486,9 +500,7 @@ export class Notification {
   }
 
   static getExplorerUrl(txHash, chainId) {
-    const network = Object.values(networkConfigs).find(
-      (net) => net.chainId === chainId,
-    );
+    const network = getNetworkByChainId(chainId);
     return network?.explorerUrl
       ? `${network.explorerUrl}${txHash}`
       : `https://etherscan.io/tx/${txHash}`;
@@ -661,6 +673,14 @@ export class ConnectWallet {
     window.dispatchEvent(new Event("eip6963:requestProvider"));
   }
 
+  setStorageState(key, value) {
+    if (value === null || value === undefined || value === "") {
+      this.storage.removeItem(key);
+      return;
+    }
+    this.storage.setItem(key, value);
+  }
+
   handleProviderAnnounce(event) {
     const { detail: providerDetail } = event;
     const providerName = providerDetail.info.name;
@@ -727,47 +747,31 @@ export class ConnectWallet {
     this.removeProviderEvents();
 
     this.currentProvider = provider.provider;
+    const recover = () =>
+      this.verifyConnectionState({ allowUiDisconnect: true, retries: 2 });
     this.providerListeners = {
-      accountsChanged: (accounts) => {
-        accounts.length > 0
-          ? this.updateAddress(accounts[0])
-          : this.verifyConnectionState({ allowUiDisconnect: true, retries: 2 });
-      },
-      chainChanged: (chainId) => {
-        this.handleChainChanged(chainId);
-      },
-      disconnect: () =>
-        this.verifyConnectionState({ allowUiDisconnect: true, retries: 2 }),
+      accountsChanged: (accounts) =>
+        accounts.length > 0 ? this.updateAddress(accounts[0]) : recover(),
+      chainChanged: (chainId) => this.handleChainChanged(chainId),
+      disconnect: recover,
     };
 
     if (typeof this.currentProvider?.on !== "function") return;
-    this.currentProvider.on(
-      "accountsChanged",
-      this.providerListeners.accountsChanged,
-    );
-    this.currentProvider.on(
-      "chainChanged",
-      this.providerListeners.chainChanged,
-    );
-    this.currentProvider.on("disconnect", this.providerListeners.disconnect);
+    PROVIDER_EVENTS.forEach((eventName) => {
+      this.currentProvider.on(eventName, this.providerListeners[eventName]);
+    });
   }
 
   removeProviderEvents() {
     if (!this.currentProvider || !this.providerListeners) return;
 
     if (typeof this.currentProvider.removeListener === "function") {
-      this.currentProvider.removeListener(
-        "accountsChanged",
-        this.providerListeners.accountsChanged,
-      );
-      this.currentProvider.removeListener(
-        "chainChanged",
-        this.providerListeners.chainChanged,
-      );
-      this.currentProvider.removeListener(
-        "disconnect",
-        this.providerListeners.disconnect,
-      );
+      PROVIDER_EVENTS.forEach((eventName) => {
+        this.currentProvider.removeListener(
+          eventName,
+          this.providerListeners[eventName],
+        );
+      });
       return;
     }
 
@@ -804,11 +808,7 @@ export class ConnectWallet {
     this.currentProvider = null;
     this.providerListeners = null;
 
-    [
-      STORAGE_KEYS.CHAIN_ID,
-      STORAGE_KEYS.LAST_WALLET,
-      STORAGE_KEYS.IS_CONNECTED,
-    ].forEach((key) => this.storage.removeItem(key));
+    CONNECT_STATE_KEYS.forEach((key) => this.storage.removeItem(key));
 
     if (this.onDisconnectCallback) {
       this.onDisconnectCallback();
@@ -836,8 +836,7 @@ export class ConnectWallet {
       try {
         const [accounts, chainId] = await this.requestProviderState(provider);
         if (Array.isArray(accounts) && accounts.length > 0) {
-          const previousChainId = normalizeChainId(this.getCurrentChainId());
-          const nextChainId = normalizeChainId(chainId);
+          const previousChainId = this.getCurrentChainId();
 
           this.applyConnectedState({
             accounts,
@@ -846,7 +845,7 @@ export class ConnectWallet {
             render: false,
           });
 
-          if (Number.isFinite(nextChainId) && nextChainId !== previousChainId) {
+          if (hasChainChanged(previousChainId, chainId)) {
             this.emitChainChange(chainId);
           }
           this.render();
@@ -867,10 +866,9 @@ export class ConnectWallet {
   }
 
   handleChainChanged(chainId) {
-    const previousChainId = normalizeChainId(this.getCurrentChainId());
-    const nextChainId = normalizeChainId(chainId);
+    const previousChainId = this.getCurrentChainId();
     this.updateNetworkStatus(chainId);
-    if (Number.isFinite(nextChainId) && nextChainId !== previousChainId) {
+    if (hasChainChanged(previousChainId, chainId)) {
       this.emitChainChange(chainId);
     }
     this.render();
@@ -894,9 +892,8 @@ export class ConnectWallet {
     const account = Array.isArray(accounts) ? accounts[0] : null;
     if (!account) return;
 
-    this.storage.setItem(STORAGE_KEYS.IS_CONNECTED, "true");
-    if (providerName)
-      this.storage.setItem(STORAGE_KEYS.LAST_WALLET, providerName);
+    this.setStorageState(STORAGE_KEYS.IS_CONNECTED, "true");
+    this.setStorageState(STORAGE_KEYS.LAST_WALLET, providerName);
     this.updateAddress(account);
     this.updateNetworkStatus(chainId);
     if (render) this.render();
@@ -931,16 +928,15 @@ export class ConnectWallet {
   }
 
   async resolveENS(address) {
-    const empty = { name: null, avatar: null };
     try {
       const mainnetProvider = getEthereumProvider();
       const ensName = await mainnetProvider.lookupAddress(address);
-      if (!ensName) return empty;
+      if (!ensName) return ENS_EMPTY_RESULT;
 
       const avatar = await mainnetProvider.getAvatar(ensName);
       return { name: ensName, avatar };
     } catch {
-      return empty;
+      return ENS_EMPTY_RESULT;
     }
   }
 
@@ -952,23 +948,22 @@ export class ConnectWallet {
       this.nameResolutionOrder === "wns-first"
         ? ["wns", "ens"]
         : ["ens", "wns"];
+    const resolvers = {
+      wns: async () => {
+        const name = await this.resolveWNS(address);
+        return name ? { name, avatar: null, source: "wns" } : null;
+      },
+      ens: async () => {
+        const { name, avatar } = await this.resolveENS(address);
+        return name ? { name, avatar, source: "ens" } : null;
+      },
+    };
     let resolved = null;
 
     try {
       for (const source of resolutionOrder) {
-        if (source === "wns") {
-          const name = await this.resolveWNS(address);
-          if (name) {
-            resolved = { name, avatar: null, source };
-            break;
-          }
-        } else {
-          const { name, avatar } = await this.resolveENS(address);
-          if (name) {
-            resolved = { name, avatar, source };
-            break;
-          }
-        }
+        resolved = await resolvers[source]();
+        if (resolved) break;
       }
 
       if (!resolved?.name) return;
@@ -1008,7 +1003,6 @@ export class ConnectWallet {
         params: [{ chainId: chainIdHex }],
       });
       this.hideModal();
-      this.storage.setItem(STORAGE_KEYS.CHAIN_ID, chainIdHex);
       this.updateNetworkStatus(networkConfig.chainId);
       this.render();
     } catch (error) {
@@ -1020,7 +1014,7 @@ export class ConnectWallet {
   updateNetworkStatus(chainId) {
     const normalized = normalizeChainId(chainId);
     if (!Number.isFinite(normalized)) return;
-    this.storage.setItem(STORAGE_KEYS.CHAIN_ID, chainIdToHex(normalized));
+    this.setStorageState(STORAGE_KEYS.CHAIN_ID, chainIdToHex(normalized));
   }
 
   async disconnect() {
@@ -1092,7 +1086,7 @@ export class ConnectWallet {
       button.title = networkConfig.name;
       button.classList.toggle("chain-single", isSingleNetwork);
       button.innerHTML = isSingleNetwork
-        ? `<img src="${networkConfig.icon}" alt="${networkConfig.name}"><span class="connect-name">${networkConfig.name}</span><span class="connect-dot" style="display: none"></span>`
+        ? `<img src="${networkConfig.icon}" alt="${networkConfig.name}"><span class="connect-name">${networkConfig.name}</span>`
         : `<img src="${networkConfig.icon}" alt="${networkConfig.name}">`;
 
       button.onclick = () => this.switchNetwork(networkConfig);
