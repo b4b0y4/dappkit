@@ -1,6 +1,9 @@
 import { ethers } from "./ethers.min.js";
 
-// WNS Contract
+// ============================================================
+// WNS CONTRACT CONFIGURATION
+// ============================================================
+
 const WNS_CONTRACT_ADDRESS = "0x0000000000696760E15f265e828DB644A0c242EB";
 const WNS_ABI = [
   {
@@ -19,7 +22,10 @@ const WNS_ABI = [
   },
 ];
 
-// Constants
+// ============================================================
+// CONSTANTS & CONFIGURATION
+// ============================================================
+
 const STORAGE_KEYS = {
   CHAIN_ID: "connectCurrentChainId",
   LAST_WALLET: "connectLastWallet",
@@ -100,7 +106,10 @@ export const networkConfigs = {
   },
 };
 
-// Helpers
+// ============================================================
+// HELPERS
+// ============================================================
+
 const normalizeChainId = (chainId) => {
   if (typeof chainId === "string") chainId = chainId.trim();
   const parsed = Number(chainId);
@@ -147,7 +156,10 @@ const onReady = (cb) =>
     ? document.addEventListener("DOMContentLoaded", cb)
     : cb();
 
-// RPC Modal
+// ============================================================
+// RPC MODAL
+// ============================================================
+
 const rpcModal = document.getElementById("rpc-modal");
 const toggleRpcModal = (show) => rpcModal?.classList.toggle("show", show);
 
@@ -190,7 +202,10 @@ window.addEventListener("click", (e) => {
   if (e.target === rpcModal) toggleRpcModal(false);
 });
 
-// Copy to Clipboard
+// ============================================================
+// COPY TO CLIPBOARD
+// ============================================================
+
 class Copy {
   static initialized = false;
   static elements = new WeakSet();
@@ -258,7 +273,10 @@ class Copy {
 
 onReady(() => Copy.init());
 
-// Notifications
+// ============================================================
+// NOTIFICATIONS
+// ============================================================
+
 export class Notification {
   static container = null;
   static notifications = new Map();
@@ -407,7 +425,10 @@ export class Notification {
   }
 }
 
-// Wallet Connection
+// ============================================================
+// WALLET CONNECTION
+// ============================================================
+
 export class ConnectWallet {
   constructor(options = {}) {
     this.networkConfigs = options.networkConfigs || networkConfigs;
