@@ -6,11 +6,15 @@ const wallet = new ConnectWallet();
 document.addEventListener("DOMContentLoaded", () => {
   wallet.onConnect((data) => {
     const account = data.accounts[0];
-    const shortAccount = `${account.slice(0, 6)}...${account.slice(-4)}`;
-    Notification.show(
-      `Connected to ${wallet.getLastWallet()} account ${shortAccount}`,
-      "success",
-    );
+    wallet
+      .getResolvedName(account)
+      .then((displayName) =>
+        Notification.show(
+          `Connected to ${wallet.getLastWallet()}: ${displayName}`,
+          "info",
+        ),
+      )
+      .catch(() => {});
   });
 
   wallet.onDisconnect(() => {

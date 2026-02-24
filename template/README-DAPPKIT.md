@@ -79,6 +79,8 @@ await wallet.getAccount();         // address or null
 await wallet.getChainId();         // numeric id
 wallet.getProvider();              // EIP-1193 provider
 wallet.getEthersProvider();        // ethers BrowserProvider
+wallet.getShortAddr(address);      // e.g. 0x1234...abcd
+await wallet.getResolvedName(address); // resolved name or short address
 await wallet.disconnect();
 ```
 

@@ -949,6 +949,31 @@ export class ConnectWallet {
     const p = this.getConnectedProvider();
     return p ? new ethers.BrowserProvider(p) : null;
   }
+  getShortAddr(address) {
+    return address ? shortenAddress(address) : "";
+  }
+  async getResolvedName(address) {
+    if (!address) return "";
+    const order =
+      this.nameResolutionOrder === "wns-first"
+        ? ["wns", "ens"]
+        : ["ens", "wns"];
+    const resolvers = {
+      wns: async () => {
+        const name = await this.resolveWNS(address);
+        return name ? { name, avatar: null, source: "wns" } : null;
+      },
+      ens: async () => {
+        const { name, avatar } = await this.resolveENS(address);
+        return name ? { name, avatar, source: "ens" } : null;
+      },
+    };
+    for (const source of order) {
+      const resolved = await resolvers[source]();
+      if (resolved?.name) return resolved.name;
+    }
+    return this.getShortAddr(address);
+  }
   onConnect(cb) {
     this.onConnectCallback = cb;
   }
