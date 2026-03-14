@@ -473,7 +473,6 @@ export class ConnectWallet {
         retryDelayMs: 500,
       });
       this.initializing = false;
-      this.syncUnsupportedNetworkNotice(this.getCurrentChainId());
     }, 300);
   }
 
