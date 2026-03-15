@@ -60,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         label: "Demo Transaction",
       });
     } catch (error) {
-      Notification.show("Transaction failed: " + error.message, "error");
+      Notification.show(error.message, "error");
     }
   });
 });
