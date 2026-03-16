@@ -38,7 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   Notification.show("Welcome to dappkit!", "success");
 
-  // Demo transaction tracker
+  // Demo transaction tracker (send 0 ETH to self)
   document.querySelector("#demo-tx")?.addEventListener("click", async () => {
     if (!wallet.isConnected()) {
       Notification.show("Please connect your wallet first", "warning");
@@ -48,8 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const provider = wallet.getEthersProvider();
       const signer = await provider.getSigner();
-
-      // Demo transaction (send 0 ETH to self)
       const account = await wallet.getAccount();
       const tx = await signer.sendTransaction({
         to: account,
