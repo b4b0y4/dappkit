@@ -463,9 +463,17 @@ export class ConnectWallet {
     this.bindEvents();
     this.setupUIEvents();
     this.requestProviders();
+    this.initializing = true;
     this.restoreState();
     this.render();
-    this.verifyConnectionState({ allowUiDisconnect: true });
+    setTimeout(async () => {
+      await this.verifyConnectionState({
+        allowUiDisconnect: true,
+        retries: 2,
+        retryDelayMs: 500,
+      });
+      this.initializing = false;
+    }, 300);
   }
 
   isAllowed(chainId) {
@@ -477,7 +485,15 @@ export class ConnectWallet {
       this.handleProviderAnnounce(e),
     );
     const onVisible = () =>
-      this.verifyConnectionState({ allowUiDisconnect: true });
+      setTimeout(
+        () =>
+          this.verifyConnectionState({
+            allowUiDisconnect: true,
+            retries: 2,
+            retryDelayMs: 500,
+          }),
+        300,
+      );
     window.addEventListener("focus", onVisible);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") onVisible();
@@ -565,7 +581,7 @@ export class ConnectWallet {
     this.removeProviderEvents();
     this.currentProvider = provider.provider;
     const recover = () =>
-      this.verifyConnectionState({ allowUiDisconnect: true });
+      this.verifyConnectionState({ allowUiDisconnect: true, retries: 2 });
     this.providerListeners = {
       accountsChanged: (accounts) =>
         accounts.length > 0 ? this.updateAddress(accounts[0]) : recover(),
@@ -628,26 +644,36 @@ export class ConnectWallet {
     this.render();
   }
 
-  async verifyConnectionState({ allowUiDisconnect = false } = {}) {
+  async verifyConnectionState({
+    allowUiDisconnect = false,
+    retries = 0,
+    retryDelayMs = 250,
+  } = {}) {
     const provider = this.currentProvider || this.getConnectedProvider();
     if (!provider) return;
-    try {
-      const [accounts, chainId] = await this.requestProviderState(provider);
-      if (Array.isArray(accounts) && accounts.length > 0) {
-        const prevChainId = this.getCurrentChainId();
-        this.applyConnectedState({
-          accounts,
-          chainId,
-          providerName: this.getLastWallet(),
-          render: false,
-        });
-        if (hasChainChanged(prevChainId, chainId))
-          this.emitChainChange(chainId);
-        this.render();
-        return;
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const [accounts, chainId] = await this.requestProviderState(provider);
+        if (Array.isArray(accounts) && accounts.length > 0) {
+          const prevChainId = this.getCurrentChainId();
+          this.applyConnectedState({
+            accounts,
+            chainId,
+            providerName: this.getLastWallet(),
+            render: false,
+          });
+          if (hasChainChanged(prevChainId, chainId))
+            this.emitChainChange(chainId);
+          this.render();
+          return;
+        }
+      } catch {}
+      if (attempt < retries) {
+        await new Promise((r) => setTimeout(r, retryDelayMs));
+        continue;
       }
-    } catch {}
-    if (allowUiDisconnect) this.applyDisconnectedState();
+      if (allowUiDisconnect) this.applyDisconnectedState();
+    }
   }
 
   handleChainChanged(chainId) {
@@ -674,14 +700,23 @@ export class ConnectWallet {
     if (!account) return;
     this.setStorageState(STORAGE_KEYS.IS_CONNECTED, "true");
     this.setStorageState(STORAGE_KEYS.LAST_WALLET, providerName);
-    this.updateAddress(account);
+
+    const currentAddress =
+      this.elements.connectBtn?.getAttribute("data-address");
+    if (
+      !currentAddress ||
+      currentAddress.toLowerCase() !== account.toLowerCase()
+    ) {
+      this.updateAddress(account);
+    }
+
     this.updateNetworkStatus(chainId);
     this.syncUnsupportedNetworkNotice(chainId);
     if (render) this.render();
   }
 
   showUnsupportedNetworkNotice() {
-    if (!this.showUnsupportedNetworkNotification) return;
+    if (!this.showUnsupportedNetworkNotification || this.initializing) return;
     if (this.unsupportedNetworkNotificationId)
       Notification.hide(this.unsupportedNetworkNotificationId);
     this.unsupportedNetworkNotificationId = Notification.show(
@@ -707,11 +742,6 @@ export class ConnectWallet {
 
   updateAddress(address) {
     if (!this.elements.connectBtn) return;
-    if (
-      address === this.elements.connectBtn.getAttribute("data-address") &&
-      this.elements.connectBtn.classList.contains("name-resolved")
-    )
-      return;
     const short = shortenAddress(address);
     this.elements.connectBtn.innerHTML = `<span class="connect-address-text">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span>`;
     this.elements.connectBtn.classList.add("connected");
@@ -768,8 +798,6 @@ export class ConnectWallet {
         if (resolved) break;
       }
       if (!resolved?.name) return;
-      if (this.elements.connectBtn.getAttribute("data-address") !== address)
-        return;
       this.elements.connectBtn.innerHTML = `<div class="name-details"><div class="resolved-name">${resolved.name}</div><div class="named-address-row"><span class="named-address">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span></div></div>${resolved.avatar ? `<img src="${resolved.avatar}" style="border-radius: 50%">` : ""}`;
       this.elements.connectBtn.classList.add("name-resolved");
       this.elements.connectBtn.setAttribute("data-address", address);
