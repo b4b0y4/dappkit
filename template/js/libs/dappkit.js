@@ -433,6 +433,7 @@ export class ConnectWallet {
   constructor(options = {}) {
     this.networkConfigs = options.networkConfigs || networkConfigs;
     this.providers = [];
+    this._nameCache = new Map();
     this.storage = options.storage || window.localStorage;
     this.currentProvider = null;
     this.providerListeners = null;
@@ -733,12 +734,24 @@ export class ConnectWallet {
 
   updateAddress(address) {
     if (!this.elements.connectBtn) return;
+    if (
+      address === this.elements.connectBtn.getAttribute("data-address") &&
+      this.elements.connectBtn.classList.contains("name-resolved")
+    )
+      return;
+
     const short = shortenAddress(address);
-    this.elements.connectBtn.innerHTML = `<span class="connect-address-text">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span>`;
-    this.elements.connectBtn.classList.add("connected");
-    this.elements.connectBtn.classList.remove("name-resolved");
+    const cached = this._nameCache.get(address);
+    if (cached) {
+      this.elements.connectBtn.innerHTML = `<div class="name-details"><div class="resolved-name">${cached.name}</div><div class="named-address-row"><span class="named-address">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span></div></div>${cached.avatar ? `<img src="${cached.avatar}" style="border-radius: 50%">` : ""}`;
+      this.elements.connectBtn.classList.add("connected", "name-resolved");
+    } else {
+      this.elements.connectBtn.innerHTML = `<span class="connect-address-text">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span>`;
+      this.elements.connectBtn.classList.add("connected");
+      this.elements.connectBtn.classList.remove("name-resolved");
+      this.resolveName(address);
+    }
     this.elements.connectBtn.setAttribute("data-address", address);
-    this.resolveName(address);
   }
 
   async resolveWNS(address) {
