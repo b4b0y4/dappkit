@@ -433,7 +433,6 @@ export class ConnectWallet {
   constructor(options = {}) {
     this.networkConfigs = options.networkConfigs || networkConfigs;
     this.providers = [];
-    this._nameCache = new Map();
     this.storage = options.storage || window.localStorage;
     this.currentProvider = null;
     this.providerListeners = null;
@@ -464,17 +463,9 @@ export class ConnectWallet {
     this.bindEvents();
     this.setupUIEvents();
     this.requestProviders();
-    this.initializing = true;
     this.restoreState();
     this.render();
-    setTimeout(async () => {
-      await this.verifyConnectionState({
-        allowUiDisconnect: true,
-        retries: 2,
-        retryDelayMs: 500,
-      });
-      this.initializing = false;
-    }, 300);
+    this.verifyConnectionState({ allowUiDisconnect: true });
   }
 
   isAllowed(chainId) {
@@ -486,15 +477,7 @@ export class ConnectWallet {
       this.handleProviderAnnounce(e),
     );
     const onVisible = () =>
-      setTimeout(
-        () =>
-          this.verifyConnectionState({
-            allowUiDisconnect: true,
-            retries: 2,
-            retryDelayMs: 500,
-          }),
-        300,
-      );
+      this.verifyConnectionState({ allowUiDisconnect: true });
     window.addEventListener("focus", onVisible);
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "visible") onVisible();
@@ -582,7 +565,7 @@ export class ConnectWallet {
     this.removeProviderEvents();
     this.currentProvider = provider.provider;
     const recover = () =>
-      this.verifyConnectionState({ allowUiDisconnect: true, retries: 2 });
+      this.verifyConnectionState({ allowUiDisconnect: true });
     this.providerListeners = {
       accountsChanged: (accounts) =>
         accounts.length > 0 ? this.updateAddress(accounts[0]) : recover(),
@@ -645,36 +628,26 @@ export class ConnectWallet {
     this.render();
   }
 
-  async verifyConnectionState({
-    allowUiDisconnect = false,
-    retries = 0,
-    retryDelayMs = 250,
-  } = {}) {
+  async verifyConnectionState({ allowUiDisconnect = false } = {}) {
     const provider = this.currentProvider || this.getConnectedProvider();
     if (!provider) return;
-    for (let attempt = 0; attempt <= retries; attempt++) {
-      try {
-        const [accounts, chainId] = await this.requestProviderState(provider);
-        if (Array.isArray(accounts) && accounts.length > 0) {
-          const prevChainId = this.getCurrentChainId();
-          this.applyConnectedState({
-            accounts,
-            chainId,
-            providerName: this.getLastWallet(),
-            render: false,
-          });
-          if (hasChainChanged(prevChainId, chainId))
-            this.emitChainChange(chainId);
-          this.render();
-          return;
-        }
-      } catch {}
-      if (attempt < retries) {
-        await new Promise((r) => setTimeout(r, retryDelayMs));
-        continue;
+    try {
+      const [accounts, chainId] = await this.requestProviderState(provider);
+      if (Array.isArray(accounts) && accounts.length > 0) {
+        const prevChainId = this.getCurrentChainId();
+        this.applyConnectedState({
+          accounts,
+          chainId,
+          providerName: this.getLastWallet(),
+          render: false,
+        });
+        if (hasChainChanged(prevChainId, chainId))
+          this.emitChainChange(chainId);
+        this.render();
+        return;
       }
-      if (allowUiDisconnect) this.applyDisconnectedState();
-    }
+    } catch {}
+    if (allowUiDisconnect) this.applyDisconnectedState();
   }
 
   handleChainChanged(chainId) {
@@ -708,7 +681,7 @@ export class ConnectWallet {
   }
 
   showUnsupportedNetworkNotice() {
-    if (!this.showUnsupportedNetworkNotification || this.initializing) return;
+    if (!this.showUnsupportedNetworkNotification) return;
     if (this.unsupportedNetworkNotificationId)
       Notification.hide(this.unsupportedNetworkNotificationId);
     this.unsupportedNetworkNotificationId = Notification.show(
@@ -739,19 +712,12 @@ export class ConnectWallet {
       this.elements.connectBtn.classList.contains("name-resolved")
     )
       return;
-
     const short = shortenAddress(address);
-    const cached = this._nameCache.get(address);
-    if (cached) {
-      this.elements.connectBtn.innerHTML = `<div class="name-details"><div class="resolved-name">${cached.name}</div><div class="named-address-row"><span class="named-address">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span></div></div>${cached.avatar ? `<img src="${cached.avatar}" style="border-radius: 50%">` : ""}`;
-      this.elements.connectBtn.classList.add("connected", "name-resolved");
-    } else {
-      this.elements.connectBtn.innerHTML = `<span class="connect-address-text">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span>`;
-      this.elements.connectBtn.classList.add("connected");
-      this.elements.connectBtn.classList.remove("name-resolved");
-      this.resolveName(address);
-    }
+    this.elements.connectBtn.innerHTML = `<span class="connect-address-text">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span>`;
+    this.elements.connectBtn.classList.add("connected");
+    this.elements.connectBtn.classList.remove("name-resolved");
     this.elements.connectBtn.setAttribute("data-address", address);
+    this.resolveName(address);
   }
 
   async resolveWNS(address) {
@@ -802,6 +768,8 @@ export class ConnectWallet {
         if (resolved) break;
       }
       if (!resolved?.name) return;
+      if (this.elements.connectBtn.getAttribute("data-address") !== address)
+        return;
       this.elements.connectBtn.innerHTML = `<div class="name-details"><div class="resolved-name">${resolved.name}</div><div class="named-address-row"><span class="named-address">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span></div></div>${resolved.avatar ? `<img src="${resolved.avatar}" style="border-radius: 50%">` : ""}`;
       this.elements.connectBtn.classList.add("name-resolved");
       this.elements.connectBtn.setAttribute("data-address", address);
