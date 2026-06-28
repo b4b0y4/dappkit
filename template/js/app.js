@@ -25,8 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (allowed) Notification.show(`Switched to ${name}`, "info");
   });
 
-  // Name resolution order: 'wns-first' or 'ens-first'
-  wallet.setNameResolutionOrder("wns-first");
+  // Name resolution order: default is ["ens", "gns", "wns"]
+  wallet.setNameResolutionOrder(["ens", "gns", "wns"]);
 
   // Demo notification buttons
   document.querySelectorAll("button[data-type]").forEach((btn) => {
