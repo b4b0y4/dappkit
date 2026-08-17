@@ -1,7 +1,8 @@
 import { ethers } from "./libs/ethers.min.js";
 import { ConnectWallet, Notification, getRpcUrl } from "./libs/dappkit.js";
 
-const wallet = new ConnectWallet();
+// autoConnect: when a wallet is detected it automatically tries to connect
+const wallet = new ConnectWallet({ autoConnect: true });
 
 document.addEventListener("DOMContentLoaded", () => {
   wallet.onConnect((data) => {
