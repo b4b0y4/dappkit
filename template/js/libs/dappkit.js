@@ -485,7 +485,9 @@ export class ConnectWallet {
       e.stopPropagation(),
     );
     document.addEventListener("click", () => this.hideModal());
-    this.elements.connectRpc?.addEventListener("click", () => {
+    this.elements.connectRpc?.addEventListener("click", (e) => {
+      const btn = e.currentTarget;
+      btn.dataset.spin = btn.dataset.spin === "true" ? "false" : "true";
       populateRpcInputs();
       toggleRpcModal(true);
       this.hideModal();

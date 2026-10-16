@@ -46,9 +46,10 @@
   --dk-btn-height: 40px;
   --dk-btn-height-lg: 50px;
   --dk-icon-xs: 10px;
+  --dk-icon-2xs: 8px;
   --dk-icon-sm: 18px;
   --dk-icon-md: 24px;
-  --dk-icon-lg: 28px;
+  --dk-icon-lg: 26px;
   --dk-icon-xl: 32px;
 
   /* ===== Borders ===== */
@@ -146,7 +147,7 @@ input {
   padding: var(--dk-space-sm) var(--dk-space-lg);
   font-size: var(--dk-font-lg);
   color: var(--dk-color-txt);
-  background: var(--dk-connect-color-btn);
+  background: var(--dk-color-bg);
   border: none;
   border-radius: var(--dk-radius-xl);
   cursor: pointer;
@@ -154,7 +155,7 @@ input {
 }
 
 .connect-btn:hover {
-  background-color: var(--dk-connect-color-hvr);
+  background-color: var(--dk-connect-color-btn);
 }
 
 .connect-btn.connected {
@@ -229,8 +230,8 @@ input {
 }
 
 .named-address-row .connect-copy-btn svg {
-  width: 8px;
-  height: 8px;
+  width: var(--dk-icon-2xs);
+  height: var(--dk-icon-2xs);
 }
 
 .connect-modal {
@@ -358,6 +359,11 @@ input {
   height: var(--dk-icon-xl);
   margin-right: var(--dk-gap-md);
   border-radius: var(--dk-gap-sm);
+  transition: transform var(--dk-transition);
+}
+
+.connect-wallet-list button img:hover {
+  transform: scale(1.1);
 }
 
 .connect-get-wallet {
@@ -451,8 +457,13 @@ input {
 #connect-rpc svg {
   width: var(--dk-icon-lg);
   height: var(--dk-icon-lg);
-  margin-right: 12px;
+  margin-right: var(--dk-gap-md);
   flex-shrink: 0;
+  transition: transform var(--dk-transition-smooth);
+}
+
+#connect-rpc[data-spin="true"] svg {
+  transform: rotate(-90deg);
 }
 
 .rpc-modal {
@@ -861,8 +872,8 @@ input {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: var(--dk-icon-lg);
+  height: var(--dk-icon-lg);
   color: var(--dk-color-txt);
   background: 0;
   border: 0;
@@ -906,8 +917,8 @@ input {
 }
 
 .connect-modal #theme-btn .connect-theme-text {
-  margin-left: 38px;
-  margin-right: 12px;
+  margin-left: calc(var(--dk-icon-lg) + var(--dk-gap-md));
+  margin-right: var(--dk-gap-md);
   font-size: var(--dk-font-md);
   line-height: 1;
   white-space: nowrap;
