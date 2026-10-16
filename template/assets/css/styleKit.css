@@ -857,6 +857,7 @@ input {
    ========================================================= */
 
 #theme-btn {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -879,6 +880,50 @@ input {
   opacity: 0;
   transform: rotate(-90deg);
   transition: var(--dk-transition-smooth);
+}
+
+.connect-modal #theme-btn {
+  font-size: inherit;
+  justify-content: flex-start;
+  width: 100%;
+  height: var(--dk-btn-height-lg);
+  padding: var(--dk-space-sm);
+  margin: 2.5px 0 0 0;
+  background-color: var(--dk-connect-color-btn);
+  opacity: 1;
+  transition: background-color var(--dk-transition);
+}
+
+.connect-modal #theme-btn:hover {
+  opacity: 1;
+  background-color: var(--dk-connect-color-hvr);
+}
+
+.connect-modal #theme-btn svg {
+  top: 50%;
+  left: var(--dk-space-sm);
+  translate: 0 -50%;
+}
+
+.connect-modal #theme-btn .connect-theme-text {
+  margin-left: 38px;
+  margin-right: 12px;
+  font-size: var(--dk-font-md);
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.connect-modal #theme-btn .connect-theme-text::before {
+  content: "System";
+}
+
+[data-theme-source="light"] .connect-modal #theme-btn .connect-theme-text::before {
+  content: "Light";
+}
+
+[data-theme-source="dark"] .connect-modal #theme-btn .connect-theme-text::before {
+  content: "Dark";
 }
 
 [data-selected-theme="light"][data-theme-source="light"] #theme-light,
