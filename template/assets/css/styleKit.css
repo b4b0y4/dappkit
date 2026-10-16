@@ -203,8 +203,8 @@ input {
 }
 
 .connect-btn img {
-  width: var(--dk-icon-lg);
-  height: var(--dk-icon-lg);
+  width: var(--dk-icon-xl);
+  height: var(--dk-icon-xl);
   margin-right: var(--dk-gap-sm);
   border: var(--dk-border-thin) solid var(--color-bg);
 }
