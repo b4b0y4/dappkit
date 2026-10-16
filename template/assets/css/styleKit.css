@@ -140,6 +140,35 @@ input {
   z-index: var(--dk-z-widget);
 }
 
+.connect-wallet-list button,
+.connect-get-wallet,
+#connect-rpc,
+.connect-modal #theme-btn {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: var(--dk-btn-height-lg);
+  margin-top: 2.5px;
+  font-size: var(--dk-font-md);
+  color: var(--dk-color-txt);
+  background-color: var(--dk-connect-color-btn);
+  border: none;
+  cursor: pointer;
+  transition: background-color var(--dk-transition);
+}
+
+.connect-wallet-list button:hover,
+.connect-get-wallet:hover,
+#connect-rpc:hover,
+.connect-modal #theme-btn:hover {
+  background-color: var(--dk-connect-color-hvr);
+}
+
+.connect-wallet-list button,
+#connect-rpc {
+  position: relative;
+}
+
 .connect-btn {
   display: flex;
   align-items: center;
@@ -328,25 +357,10 @@ input {
 }
 
 .connect-wallet-list button {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: var(--dk-btn-height-lg);
   padding: var(--dk-space-sm) var(--dk-space-2xl) var(--dk-space-sm)
     var(--dk-space-sm);
-  margin: 2.5px 0;
-  font-size: var(--dk-font-md);
-  color: var(--dk-color-txt);
-  background-color: var(--dk-connect-color-btn);
-  border: none;
+  margin-bottom: 2.5px;
   white-space: nowrap;
-  cursor: pointer;
-  transition: background-color var(--dk-transition);
-}
-
-.connect-wallet-list button:hover {
-  background-color: var(--dk-connect-color-hvr);
 }
 
 .connect-wallet-list button:last-child {
@@ -367,22 +381,7 @@ input {
 }
 
 .connect-get-wallet {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: var(--dk-btn-height-lg);
-  margin: 2.5px 0 0 0;
-  font-size: var(--dk-font-md);
-  color: var(--dk-color-txt);
-  background-color: var(--dk-connect-color-btn);
-  border: none;
   border-radius: 0 0 var(--dk-radius-2xl) var(--dk-radius-2xl);
-  cursor: pointer;
-  transition: background-color var(--dk-transition);
-}
-
-.connect-get-wallet:hover {
-  background-color: var(--dk-connect-color-hvr);
 }
 
 .connect-get-wallet a {
@@ -433,25 +432,9 @@ input {
    ========================================================= */
 
 #connect-rpc {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-  height: var(--dk-btn-height-lg);
   padding: var(--dk-space-sm) var(--dk-space-2xl) var(--dk-space-sm)
     var(--dk-space-sm);
-  margin: 2.5px 0 0 0;
-  font-size: var(--dk-font-md);
-  color: var(--dk-color-txt);
-  background-color: var(--dk-connect-color-btn);
-  border: none;
   white-space: nowrap;
-  cursor: pointer;
-  transition: background-color var(--dk-transition);
-}
-
-#connect-rpc:hover {
-  background-color: var(--dk-connect-color-hvr);
 }
 
 #connect-rpc svg {
@@ -525,20 +508,8 @@ input {
 }
 
 .rpc-close-btn::before,
-.notif-close::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 2px;
-  background-color: currentColor;
-  border-radius: 1px;
-  transform: translate(-50%, -50%) rotate(45deg);
-  pointer-events: none;
-}
-
 .rpc-close-btn::after,
+.notif-close::before,
 .notif-close::after {
   content: "";
   position: absolute;
@@ -548,8 +519,18 @@ input {
   height: 2px;
   background-color: currentColor;
   border-radius: 1px;
-  transform: translate(-50%, -50%) rotate(-45deg);
+  translate: -50% -50%;
   pointer-events: none;
+}
+
+.rpc-close-btn::before,
+.notif-close::before {
+  rotate: 45deg;
+}
+
+.rpc-close-btn::after,
+.notif-close::after {
+  rotate: -45deg;
 }
 
 .rpc-close-btn {
@@ -675,16 +656,10 @@ input {
   transform: translateX(0);
 }
 
-.notification.hide {
-  opacity: 0;
-  transform: translateX(-100%);
-}
-
 .notification.info,
 .notification.tx-notification.pending {
   --dk-notif-color: var(--dk-color-blue);
 }
-
 .notification.success,
 .notification.tx-notification.success {
   --dk-notif-color: var(--dk-color-green);
@@ -756,16 +731,8 @@ input {
   flex-shrink: 0;
 }
 
-.notification.tx-notification.pending .tx-icon {
-  color: rgb(var(--dk-color-blue));
-}
-
-.notification.tx-notification.success .tx-icon {
-  color: rgb(var(--dk-color-green));
-}
-
-.notification.tx-notification.failed .tx-icon {
-  color: rgb(var(--dk-color-red));
+.notification.tx-notification .tx-icon {
+  color: rgb(var(--dk-notif-color));
 }
 
 .notification.tx-notification.success .tx-icon::before {
@@ -896,18 +863,8 @@ input {
 .connect-modal #theme-btn {
   font-size: inherit;
   justify-content: flex-start;
-  width: 100%;
-  height: var(--dk-btn-height-lg);
   padding: var(--dk-space-sm);
-  margin: 2.5px 0 0 0;
-  background-color: var(--dk-connect-color-btn);
   opacity: 1;
-  transition: background-color var(--dk-transition);
-}
-
-.connect-modal #theme-btn:hover {
-  opacity: 1;
-  background-color: var(--dk-connect-color-hvr);
 }
 
 .connect-modal #theme-btn svg {
@@ -926,15 +883,15 @@ input {
 }
 
 .connect-modal #theme-btn .connect-theme-text::before {
-  content: "System";
+  content: var(--dk-theme-label, "System");
 }
 
-[data-theme-source="light"] .connect-modal #theme-btn .connect-theme-text::before {
-  content: "Light";
+[data-theme-source="light"] {
+  --dk-theme-label: "Light";
 }
 
-[data-theme-source="dark"] .connect-modal #theme-btn .connect-theme-text::before {
-  content: "Dark";
+[data-theme-source="dark"] {
+  --dk-theme-label: "Dark";
 }
 
 [data-selected-theme="light"][data-theme-source="light"] #theme-light,
