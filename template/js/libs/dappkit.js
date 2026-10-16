@@ -48,6 +48,7 @@ export const networkConfigs = {
     icon: "./assets/img/eth.png",
     explorerUrl: "https://etherscan.io/tx/",
     showInUI: true,
+    rpcConfigurable: true,
   },
   arbitrum: {
     name: "Arbitrum",
@@ -56,6 +57,7 @@ export const networkConfigs = {
     icon: "./assets/img/arb.png",
     explorerUrl: "https://arbiscan.io/tx/",
     showInUI: true,
+    rpcConfigurable: false,
   },
   optimism: {
     name: "Optimism",
@@ -64,6 +66,7 @@ export const networkConfigs = {
     icon: "./assets/img/op.png",
     explorerUrl: "https://optimistic.etherscan.io/tx/",
     showInUI: true,
+    rpcConfigurable: false,
   },
   base: {
     name: "Base",
@@ -72,6 +75,7 @@ export const networkConfigs = {
     icon: "./assets/img/base.png",
     explorerUrl: "https://basescan.org/tx/",
     showInUI: true,
+    rpcConfigurable: false,
   },
   zksync: {
     name: "ZKsync",
@@ -80,6 +84,7 @@ export const networkConfigs = {
     icon: "./assets/img/zksync.png",
     explorerUrl: "https://explorer.zksync.io/tx/",
     showInUI: false,
+    rpcConfigurable: false,
   },
   scroll: {
     name: "Scroll",
@@ -88,6 +93,7 @@ export const networkConfigs = {
     icon: "./assets/img/scroll.png",
     explorerUrl: "https://scrollscan.com/tx/",
     showInUI: false,
+    rpcConfigurable: false,
   },
   sepolia: {
     name: "Sepolia",
@@ -96,6 +102,7 @@ export const networkConfigs = {
     icon: "./assets/img/sepolia.png",
     explorerUrl: "https://sepolia.etherscan.io/tx/",
     showInUI: false,
+    rpcConfigurable: false,
   },
 };
 
@@ -148,11 +155,14 @@ const onReady = (cb) =>
 const rpcModal = document.getElementById("rpc-modal");
 const toggleRpcModal = (show) => rpcModal?.classList.toggle("show", show);
 
+const getRpcConfigurableNetworks = () =>
+  getVisibleNetworks().filter(([, c]) => c.rpcConfigurable);
+
 function populateRpcInputs() {
   const rpcInputs = document.getElementById("rpc-inputs");
   if (!rpcInputs) return;
   rpcInputs.innerHTML = "";
-  getVisibleNetworks().forEach(([network, cfg]) => {
+  getRpcConfigurableNetworks().forEach(([network, cfg]) => {
     const div = document.createElement("div");
     const label = document.createElement("label");
     label.innerText = cfg.name;
@@ -167,7 +177,7 @@ function populateRpcInputs() {
 }
 
 function saveRpcSettings() {
-  getVisibleNetworks().forEach(([network]) => {
+  getRpcConfigurableNetworks().forEach(([network]) => {
     const input = document.getElementById(`${network}-rpc`);
     if (!input) return;
     input.value
