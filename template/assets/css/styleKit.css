@@ -373,11 +373,6 @@ input {
   height: var(--dk-icon-xl);
   margin-right: var(--dk-gap-md);
   border-radius: var(--dk-gap-sm);
-  transition: transform var(--dk-transition);
-}
-
-.connect-wallet-list button img:hover {
-  transform: scale(1.1);
 }
 
 .connect-get-wallet {
