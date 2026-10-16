@@ -202,6 +202,10 @@ input {
   margin-right: 0;
 }
 
+.connect-btn.connected:not(.name-resolved) {
+  font-size: var(--dk-font-sm);
+}
+
 .connect-btn img {
   width: var(--dk-icon-xl);
   height: var(--dk-icon-xl);
