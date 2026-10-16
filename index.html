@@ -2,54 +2,35 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <!-- Primary Meta -->
     <meta name="title" content="dappkit" />
-    <meta
-      name="description"
-      content="A minimal dependency starter template for decentralized applications."
-    />
+    <meta name="description" content="A minimal dependency starter template for decentralized applications." />
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://b4b0y4.github.io/dappkit/" />
     <meta property="og:title" content="dappkit" />
-    <meta
-      property="og:description"
-      content="A minimal dependency starter template for decentralized applications."
-    />
-    <meta
-      property="og:image"
-      content="https://b4b0y4.github.io/dappkit/template/assets/img/dappkit.png"
-    />
+    <meta property="og:description" content="A minimal dependency starter template for decentralized applications." />
+    <meta property="og:image" content="https://b4b0y4.github.io/dappkit/template/assets/img/dappkit.png" />
 
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://b4b0y4.github.io/dappkit/" />
     <meta name="twitter:title" content="dappkit" />
-    <meta
-      name="twitter:description"
-      content="A minimal dependency starter template for decentralized applications."
-    />
-    <meta
-      name="twitter:image"
-      content="https://b4b0y4.github.io/dappkit/template/assets/img/dappkit.png"
-    />
+    <meta name="twitter:description" content="A minimal dependency starter template for decentralized applications." />
+    <meta name="twitter:image" content="https://b4b0y4.github.io/dappkit/template/assets/img/dappkit.png" />
     <title>dappkit</title>
     <script>
       (() => {
         const m = localStorage.themeMode;
-        const t =
+        document.documentElement.dataset.theme =
           m === "light" || m === "dark"
             ? m
             : matchMedia("(prefers-color-scheme: dark)").matches
               ? "dark"
               : "light";
-        document.documentElement.dataset.theme = t;
       })();
     </script>
     <base href="./template/" />
@@ -119,47 +100,17 @@
     <div class="wrapper">
       <!-- Theme Button -->
       <button id="theme-btn" aria-label="Toggle theme" title="theme">
-        <svg
-          id="theme-light"
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
+        <svg id="theme-light" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <circle cx="12" cy="12" r="5" />
-          <path
-            d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-          />
+          <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
         </svg>
-        <svg
-          id="theme-dark"
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
+        <svg id="theme-dark" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
         </svg>
-        <svg
-          id="theme-system"
-          xmlns="http://www.w3.org/2000/svg"
-          width="26"
-          height="26"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-          <line x1="8" y1="21" x2="16" y2="21" />
-          <line x1="12" y1="17" x2="12" y2="21" />
-        </svg>
+<svg id="theme-system" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+  <circle cx="12" cy="12" r="9" />
+  <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke-linejoin="round" />
+</svg>
       </button>
 
       <!-- Connect Widget -->
@@ -173,17 +124,7 @@
             aria-label="Add RPC"
             title="Add RPC"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="32"
-              height="32"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="3"></circle>
               <path
                 d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
@@ -192,9 +133,7 @@
             Add RPC
           </button>
           <div id="connect-get-wallet" class="connect-get-wallet">
-            <a href="https://ethereum.org/en/wallets/" target="_blank"
-              >Get a Wallet!</a
-            >
+            <a href="https://ethereum.org/en/wallets/" target="_blank">Get a Wallet!</a>
           </div>
           <div id="connect-wallet-list" class="connect-wallet-list"></div>
         </div>
@@ -248,30 +187,26 @@
     </div>
 
     <script>
-      // theme.js
       (() => {
         const order = ["system", "light", "dark"];
         const mq = matchMedia("(prefers-color-scheme: dark)");
         const apply = () => {
           const m = localStorage.themeMode || "system";
-          const t = m === "system" ? (mq.matches ? "dark" : "light") : m;
           Object.assign(document.documentElement.dataset, {
-            theme: t,
+            theme: m === "system" ? (mq.matches ? "dark" : "light") : m,
             themeSource: m,
             selectedTheme: m === "system" ? "" : m,
           });
         };
-        const cycle = () => {
-          const m = localStorage.themeMode || "system";
-          localStorage.themeMode = order[(order.indexOf(m) + 1) % 3];
-          apply();
-        };
         document.addEventListener("DOMContentLoaded", () => {
           const btn = document.getElementById("theme-btn");
-          if (btn) btn.onclick = cycle;
-          mq.addEventListener(
-            "change",
-            () => (localStorage.themeMode || "system") === "system" && apply(),
+          if (btn) btn.onclick = () => {
+            localStorage.themeMode =
+              order[(order.indexOf(localStorage.themeMode || "system") + 1) % 3];
+            apply();
+          };
+          mq.addEventListener("change", () =>
+            (localStorage.themeMode || "system") === "system" && apply(),
           );
           apply();
         });

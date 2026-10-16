@@ -6,16 +6,8 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const src = path.join(__dirname, "template");
-const arg = process.argv[2];
-const dest = path.resolve(process.cwd(), arg || ".");
-
-function ensureDir(p) {
-  fs.mkdirSync(p, { recursive: true });
-}
+const src = path.join(path.dirname(fileURLToPath(import.meta.url)), "template");
+const dest = path.resolve(process.cwd(), process.argv[2] || ".");
 
 function copyDir(srcDir, destDir) {
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
@@ -23,7 +15,7 @@ function copyDir(srcDir, destDir) {
     const srcPath = path.join(srcDir, entry.name);
     const destPath = path.join(destDir, entry.name);
     if (entry.isDirectory()) {
-      ensureDir(destPath);
+      fs.mkdirSync(destPath, { recursive: true });
       copyDir(srcPath, destPath);
     } else {
       if (fs.existsSync(destPath)) {
@@ -38,7 +30,7 @@ function copyDir(srcDir, destDir) {
   }
 }
 
-ensureDir(dest);
+fs.mkdirSync(dest, { recursive: true });
 copyDir(src, dest);
 
 try {
