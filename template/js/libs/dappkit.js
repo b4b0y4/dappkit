@@ -1,4 +1,3 @@
-
 import { ethers } from "./ethers.min.js";
 
 /* ============================================================
@@ -519,6 +518,7 @@ export class ChainSelect {
   static render() {
     if (!this.wallet || !this.menu) return;
     const networks = this.wallet.getVisibleNetworks();
+    const connected = this.wallet.isConnected();
     const currentId = normalizeChainId(this.wallet.getCurrentChainId());
     const current = (networks.find(([, c]) => c.chainId === currentId) || networks[0])?.[1];
 
@@ -534,7 +534,7 @@ export class ChainSelect {
           role: "option",
           icon: config.icon,
           label: config.name,
-          active: config.chainId === currentId,
+          active: connected && config.chainId === currentId,
           dropdown: this.dropdown,
           errorMessage: `Failed to switch to ${config.name}`,
           action: async () => {
@@ -978,7 +978,6 @@ export class ConnectWallet {
     });
   }
 
-  // Persists the chain id and shows/hides the "unsupported network" notice.
   updateNetworkStatus(chainId) {
     const normalized = normalizeChainId(chainId);
     if (!Number.isFinite(normalized)) return;

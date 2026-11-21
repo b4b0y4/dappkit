@@ -36,8 +36,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }),
   );
 
-  Notification.show("Welcome to dappkit!", "success");
-
   // Demo transaction tracker (send 0 ETH to self)
   document.querySelector("#demo-tx")?.addEventListener("click", async () => {
     if (!wallet.isConnected())
