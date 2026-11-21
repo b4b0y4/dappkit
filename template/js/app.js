@@ -1,10 +1,22 @@
-import { ethers } from "./libs/ethers.min.js";
-import { ConnectWallet, Notification, getRpcUrl } from "./libs/dappkit.js";
+import {
+  ChainSelect,
+  ConnectWallet,
+  Copy,
+  Notification,
+  Settings,
+  Theme,
+  WalletConnect,
+} from "./libs/dappkit.js";
 
-// autoConnect: when a wallet is detected it automatically tries to connect
 const wallet = new ConnectWallet({ autoConnect: true });
 
 document.addEventListener("DOMContentLoaded", () => {
+  Copy.mount();
+  Theme.mount();
+  ChainSelect.mount(wallet);
+  WalletConnect.mount(wallet);
+  Settings.mount();
+
   wallet.onConnect((data) => {
     const account = data.accounts[0];
     wallet
@@ -26,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (allowed) Notification.show(`Switched to ${name}`, "info");
   });
 
-  // Name resolution order: default is ["ens", "gns", "wns"]
   wallet.setNameResolutionOrder(["ens", "gns", "wns"]);
 
   // Demo notification buttons

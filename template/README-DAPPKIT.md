@@ -1,321 +1,205 @@
 # Dappkit Starter Template
 
-A minimal dependency template for decentralized applications. No build tools required—just open `index.html` in your browser.
+A minimal dependency template for decentralized applications. No build tools required — just serve the folder and open `index.html`.
 
 ## Features
 
-- **Theme Switcher**: Light/dark mode with system preference
-- **Notifications**: Toast notifications with transaction tracking
-- **Wallet Connect**: EIP-6963 compatible with multi-network support
-- **RPC Modal**: View, add, and manage custom RPC URLs
-- **Copy**: One-click copy with visual feedback
+- **Chain switcher**: dropdown with the networks marked `showInUI`
+- **Wallet connect**: EIP-6963 wallet discovery with a dropdown of browser extensions
+- **Settings menu**: System / Light / Dark theme and an inline custom RPC URL field
+- **Notifications**: toast notifications with transaction tracking
+- **Copy**: one-click copy with visual feedback
+- **Headless core**: `ConnectWallet` handles wallet state; each UI component is removable
 
 ## Quick Start
 
 ```javascript
 import {
   ConnectWallet,
+  ChainSelect,
+  WalletConnect,
+  Settings,
+  Theme,
+  Copy,
   Notification,
-  getRpcUrl,
-} from "./dappkit.js";
+} from "./js/libs/dappkit.js";
 
-const wallet = new ConnectWallet();
+const wallet = new ConnectWallet({ autoConnect: true });
 
-wallet.onConnect((data) => {
-  Notification.show('Connected!', 'success');
-});
+document.addEventListener("DOMContentLoaded", () => {
+  Copy.mount();
+  Theme.mount();
+  ChainSelect.mount(wallet);
+  WalletConnect.mount(wallet);
+  Settings.mount();
 
-wallet.onChainChange(({ chainId, allowed }) => {
-  if (!allowed) {
-    Notification.show(
-      `Chain ${chainId} is not supported`,
-      'danger'
-    );
-  }
+  wallet.onConnect(() => Notification.show("Connected!", "success"));
 });
 ```
 
-## Components
+## File Structure
 
-### Notifications
+```
+template/
+├─ index.html
+├─ assets/
+│  ├─ css/styleKit.css     ← sectioned per component
+│  └─ img/                 ← network and wallet icons
+└─ js/
+   ├─ app.js               ← mount components + demo code
+   └─ libs/
+      ├─ dappkit.js        ← all components in removable blocks
+      └─ ethers.min.js
+```
+
+## UI Components
+
+The widget is three independent dropdowns:
+
+```html
+<div class="dk-widget">
+  <!-- Chain select -->
+  <div class="dk-dropdown">
+    <button id="chain-btn" class="dk-btn dk-chain-btn" aria-expanded="false">
+      <img id="chain-btn-icon" src="./assets/img/eth.png" alt="" />
+      <span id="chain-btn-label">Ethereum</span>
+      <svg class="dk-chevron">…</svg>
+    </button>
+    <div id="chain-menu" class="dk-menu dk-chain-menu" role="listbox"></div>
+  </div>
+
+  <!-- Wallet connect -->
+  <div class="dk-dropdown">
+    <button id="connect-btn" class="dk-btn dk-connect-btn" aria-expanded="false">
+      <span class="dk-connect-label">Connect</span>
+    </button>
+    <div id="connect-menu" class="dk-menu dk-wallet-menu" role="menu">
+      <div id="connect-wallet-list" class="dk-wallet-list"></div>
+      <div id="connect-get-wallet" class="dk-get-wallet">
+        <a href="https://ethereum.org/en/wallets/" target="_blank">Get a Wallet!</a>
+      </div>
+      <button id="copy-address-btn" class="dk-menu-item" hidden>Copy Address</button>
+      <button id="disconnect-btn" class="dk-menu-item" hidden>Disconnect</button>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="dk-dropdown">
+    <button id="settings-btn" class="dk-btn dk-icon-btn" aria-expanded="false">
+      <svg>…</svg>
+    </button>
+    <div id="settings-menu" class="dk-menu dk-settings-menu" role="menu">
+      <div class="dk-theme-segment" role="radiogroup">
+        <button data-theme-mode="system">System</button>
+        <button data-theme-mode="light">Light</button>
+        <button data-theme-mode="dark">Dark</button>
+      </div>
+      <div class="dk-settings-block">
+        <div class="dk-settings-label">Add RPC URL</div>
+        <div id="rpc-inputs"></div>
+        <button id="save-rpc-btn" class="dk-save-btn">Save RPC</button>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+- Only one dropdown is open at a time. Outside click and `Escape` close it.
+- The chain button shows the active network. Switching requires a connected wallet.
+- Once connected, the connect button shows the address, then upgrades to the resolved ENS / GNS / WNS name.
+- When connected, the wallet dropdown lists all detected wallets so you can switch, plus Copy Address and Disconnect.
+
+## Removing Components
+
+Each component lives in its own block in `js/libs/dappkit.js`, marked with a banner:
 
 ```javascript
-// Basic
-Notification.show('Message', 'success'); // success, info, warning, danger
+/* ============================================================
+   COMPONENT: ChainSelect
+   Remove this block, the chain dropdown HTML, its CSS section
+   and `ChainSelect.mount(wallet)` in app.js
+   ============================================================ */
+```
 
-// Options
-Notification.show('Message', 'info', {
+To delete a feature, remove:
+
+1. Its block in `js/libs/dappkit.js`
+2. Its markup in `index.html`
+3. Its section in `assets/css/styleKit.css`
+4. Its `*.mount(...)` line in `js/app.js`
+
+`ConnectWallet` is headless and has no DOM dependencies. Shared helpers (`Dropdown`, `notify`, formatting) live in the utilities section.
+
+## Notifications
+
+```javascript
+Notification.show("Message", "success"); // success, info, warning, error
+
+Notification.show("Message", "info", {
   duration: 5000,      // ms (0 = never hide)
-  closable: true,      // show X button
-  showProgress: true,  // show progress bar
-  html: false         // allow HTML
+  closable: true,      // show the close button
+  showProgress: true,  // show the progress bar
+  html: false,         // allow HTML
 });
 
-// Track transactions
-Notification.track(txHash, chainId, rpcUrl, {
-  label: 'Swap Tokens',
-  onSuccess: (receipt) => console.log('Done!'),
-  onError: (error) => console.error('Failed!')
+// Track an ethers transaction
+const tx = await signer.sendTransaction({ to, value: 0 });
+Notification.track(tx, {
+  label: "Send ETH",
+  onSuccess: (receipt) => console.log("Done!", receipt),
+  onError: (error) => console.error(error),
 });
 
-// Clear
 Notification.clearAll();
 Notification.clearTransactions();
 ```
 
-### Wallet Connection
+## Wallet API
 
 ```javascript
-const wallet = new ConnectWallet();
+const wallet = new ConnectWallet({ autoConnect: true });
 
-// Callbacks
-wallet.onConnect((data) => console.log(data));
-wallet.onDisconnect(() => console.log('Disconnected'));
+wallet.onConnect(({ accounts, chainId, provider }) => {});
+wallet.onDisconnect(() => {});
 wallet.onChainChange(({ chainId, name, allowed }) => {});
 
-// API
-wallet.isConnected();              // boolean
-await wallet.getAccount();         // address or null
-await wallet.getChainId();         // numeric id
-wallet.getProvider();              // EIP-1193 provider
-wallet.getEthersProvider();        // ethers BrowserProvider
-wallet.getShortAddr(address);      // e.g. 0x1234...abcd
-await wallet.getResolvedName(address); // resolved name or short address
+wallet.isConnected();                 // boolean
+wallet.getAddress();                  // cached connected address
+wallet.getLastWallet();               // wallet name
+wallet.getProviders();                // EIP-6963 provider details
+wallet.getVisibleNetworks();          // [[key, config], ...]
+wallet.getCurrentChainId();           // stored chain id (hex)
+
+await wallet.connectWallet(name);
 await wallet.disconnect();
-```
+await wallet.switchNetwork(config);
 
-### RPC Modal
+await wallet.getAccount();            // address or null
+await wallet.getChainId();            // numeric id
+wallet.getProvider();                 // EIP-1193 provider
+wallet.getEthersProvider();           // ethers BrowserProvider
+wallet.getShortAddr(address);         // 0x1234...abcd
+await wallet.getResolvedName(address); // name or short address
+await wallet.resolveName(address);     // { name, avatar, source } or null
 
-```javascript
-// Get RPC URL (custom or default)
-const rpcUrl = getRpcUrl('ethereum');
-
-// Modal opens automatically via settings button
-// Custom URLs saved to localStorage
-```
-
-### Copy to Clipboard
-
-```html
-<!-- HTML (automatic) -->
-<button data-copy="0x742d35Cc...">
-  <svg>...</svg>
-  Copy Address
-</button>
-```
-
-```javascript
-// JavaScript
-await Copy.copy('Text to copy');
-await Copy.copyToClipboard('Text', element);
-```
-
-## Complete Example
-
-```javascript
-import {
-  ConnectWallet,
-  Notification,
-  getRpcUrl,
-} from "./dappkit.js";
-
-const wallet = new ConnectWallet();
-
-wallet.onConnect(() => {
-  Notification.show('Connected!', 'success');
+wallet.setNameResolutionOrder(["ens", "gns", "wns"]);
+wallet.subscribe(() => {
+  // called whenever connection, chain or provider state changes
 });
-
-wallet.onChainChange(({ chainId, allowed }) => {
-  if (!allowed) {
-    Notification.show(
-      `Chain ${chainId} is not supported`,
-      'danger'
-    );
-  }
-});
-
-async function sendETH(to, amount) {
-
-  try {
-    const provider = wallet.getEthersProvider();
-    const signer = await provider.getSigner();
-
-    const tx = await signer.sendTransaction({
-      to,
-      value: ethers.parseEther(amount)
-    });
-
-    const chainId = await wallet.getChainId();
-    const network = Object.keys(wallet.networkConfigs).find(
-      key => wallet.networkConfigs[key].chainId === chainId
-    );
-    const rpcUrl = getRpcUrl(network);
-
-    Notification.track(tx.hash, chainId, rpcUrl, {
-      label: `Send ${amount} ETH`
-    });
-  } catch (error) {
-    Notification.show(error.message, 'danger');
-  }
-}
 ```
 
-## HTML Setup
+## Theme
 
-```html
-<!-- CSS -->
-<link rel="stylesheet" href="./assets/css/theme.css" />
-<link rel="stylesheet" href="./assets/css/notifications.css" />
-<link rel="stylesheet" href="./assets/css/connect.css" />
-<link rel="stylesheet" href="./assets/css/rpcmodal.css" />
-<link rel="stylesheet" href="./assets/css/copy.css" />
-
-<!-- Containers (auto-inject if missing) -->
-<div id="notificationContainer"></div>
-
-<!-- Wallet Widget -->
-<div class="connect-wrapper">
-  <div class="connect-widget">
-    <button id="connect-btn" class="connect-btn">Connect</button>
-    <div id="connect-wallet-list" class="connect-wallet-list">
-      <div class="connect-chain-list" id="connect-chain-list"></div>
-      <div id="connect-get-wallet" class="connect-get-wallet">
-        <a href="https://ethereum.org/en/wallets/" target="_blank">Get a Wallet!</a>
-      </div>
-      <div id="connect-wallets" class="connect-wallets"></div>
-    </div>
-  </div>
-</div>
-
-<!-- RPC Modal -->
-<div id="rpc-modal" class="rpc-modal">
-  <div class="rpc-modal-content">
-    <span class="rpc-close-btn">&times;</span>
-    <h2>RPC Settings</h2>
-    <div id="rpc-inputs"></div>
-    <button id="save-rpc-btn">Save</button>
-  </div>
-</div>
-
-<!-- Settings Button -->
-<button id="settings-btn" aria-label="RPC Settings">
-  <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.33">
-    <circle cx="8" cy="8" r="2" />
-    <path d="M8 1v2M8 13v2M13.66 4.34l-1.41 1.41M3.76 11.24l-1.41 1.41M15 8h-2M3 8H1M13.66 11.66l-1.41-1.41M3.76 4.76L2.34 3.34" />
-  </svg>
-</button>
-
-<!-- Theme Button -->
-<button id="theme-btn" aria-label="Toggle theme" title="theme">
-  <svg
-    id="theme-light"
-    xmlns="http://www.w3.org/2000/svg"
-    width="26"
-    height="26"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <circle cx="12" cy="12" r="5" />
-    <path
-      d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-    />
-  </svg>
-  <svg
-    id="theme-dark"
-    xmlns="http://www.w3.org/2000/svg"
-    width="26"
-    height="26"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-  </svg>
-  <svg
-    id="theme-system"
-    xmlns="http://www.w3.org/2000/svg"
-    width="26"
-    height="26"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-  >
-    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-    <line x1="8" y1="21" x2="16" y2="21" />
-    <line x1="12" y1="17" x2="12" y2="21" />
-  </svg>
-</button>
-
-<!-- Scripts -->
-<script>
-  // theme.js
-  const themeManager = {
-    themes: ["light", "dark"],
-    sys: () => (matchMedia("(prefers-color-scheme: dark)").matches ? 1 : 0),
-    cur() {
-      return localStorage.themeOverride
-        ? this.themes.indexOf(localStorage.themeOverride)
-        : this.sys();
-    },
-    apply() {
-      let o = localStorage.themeOverride,
-        t = this.themes[this.cur()];
-      Object.assign(document.documentElement.dataset, {
-        theme: t,
-        themeSource: o ? "manual" : "system",
-        selectedTheme: o ? t : "",
-      });
-    },
-    cycle() {
-      localStorage.themeOverride = this.themes[(this.cur() + 1) % 2];
-      this.apply();
-    },
-    reset() {
-      localStorage.removeItem("themeOverride");
-      this.apply();
-    },
-  };
-  document.addEventListener("DOMContentLoaded", () => {
-    let btn = document.getElementById("theme-btn");
-    if (btn) {
-      btn.onclick = () => themeManager.cycle();
-      btn.ondblclick = (e) => (e.preventDefault(), themeManager.reset());
-    }
-    matchMedia("(prefers-color-scheme: dark)").addEventListener(
-      "change",
-      () => !localStorage.themeOverride && themeManager.apply(),
-    );
-    themeManager.apply();
-  });
-</script>
-<script type="module" src="./js/main.js"></script>
-```
-
-## Configuration
-
-### Networks
+The page sets the initial theme inline in `<head>` to avoid a flash. `Theme.mount()` handles runtime changes:
 
 ```javascript
-export const networkConfigs = {
-  ethereum: {
-    name: "Ethereum",
-    chainId: 1,
-    chainIdHex: "0x1",
-    rpcUrl: "https://ethereum-rpc.publicnode.com",
-    icon: "./assets/img/eth.png",
-    explorerUrl: "https://etherscan.io/tx/",
-    showInUI: true
-  }
-};
+Theme.mount();
+Theme.set("system"); // "system" | "light" | "dark"
+Theme.get();
+Theme.cycle();
 ```
 
-### Theme
-
-Edit CSS variables:
+Theme state is stored in `localStorage.themeMode`. The page should define:
 
 ```css
 :root {
@@ -329,12 +213,54 @@ Edit CSS variables:
 }
 ```
 
+## RPC Settings
+
+The settings dropdown renders an input for each network with `rpcConfigurable: true` (Ethereum by default).
+
+```javascript
+// Read the RPC URL in use (custom or default)
+import { getRpcUrl } from "./js/libs/dappkit.js";
+const url = getRpcUrl("ethereum");
+```
+
+Custom URLs are saved to `localStorage` as `<network>-rpc`.
+
+## Networks
+
+```javascript
+export const networkConfigs = {
+  ethereum: {
+    name: "Ethereum",
+    chainId: 1,
+    rpcUrl: "https://ethereum-rpc.publicnode.com",
+    icon: "./assets/img/eth.png",
+    explorerUrl: "https://etherscan.io/tx/",
+    showInUI: true,
+    rpcConfigurable: true,
+  },
+};
+```
+
+- `showInUI: true` adds the network to the chain dropdown.
+- `rpcConfigurable: true` adds it to the RPC form.
+
+## Copy to Clipboard
+
+```html
+<button data-copy="0x742d35Cc...">Copy Address</button>
+```
+
+```javascript
+Copy.mount();                       // enables [data-copy] elements
+await Copy.copy("text", element);   // programmatic copy
+```
+
 ## Browser Support
 
-- Chrome/Edge 90+
+- Chrome / Edge 90+
 - Firefox 88+
 - Safari 14+
 
 ## License
 
-MIT License - See [license](../license) file for details.
+MIT License — see the [license](../license) file for details.

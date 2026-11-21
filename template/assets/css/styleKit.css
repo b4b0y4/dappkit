@@ -1,6 +1,6 @@
 /* ============================================================
    CSS VARIABLES
-   ========================================================= */
+   ============================================================ */
 
 :root {
   /* ===== Spacing Scale ===== */
@@ -81,11 +81,6 @@
   --dk-color-orange: 255, 165, 0;
   --dk-color-red: 234, 51, 35;
 
-  /* ===== Modal ===== */
-  --dk-modal-overlay: rgba(0, 0, 0, 0.4);
-  --dk-modal-max-width: 500px;
-  --dk-modal-width: 90%;
-
   /* ===== Notification ===== */
   --dk-notif-max-width: 500px;
   --dk-notif-bottom: 20px;
@@ -94,27 +89,33 @@
   --dk-notif-border-size: 4px;
   --dk-notif-progress-height: 3px;
 
-  /* ===== Connect Widget ===== */
-  --dk-connect-color-btn: color-mix(in srgb, var(--color-bg) 92%, black 8%);
-  --dk-connect-color-hvr: color-mix(
-    in srgb,
-    var(--dk-connect-color-btn) 88%,
-    black 12%
-  );
+  /* ===== Bar / menu layout ===== */
+  --dk-bar-h: 56px;
+  --dk-bar-gap: 5px;
+  --dk-menu-max: 640px;
+
+  /* ===== Theme aliases (set by the page) ===== */
+  --dk-color-txt: var(--color-txt, #17202a);
+  --dk-color-bg: var(--color-bg, #f5f5f5);
+
+  /* ===== Widget / surfaces (light mode) ===== */
+  --dk-surface: color-mix(in srgb, var(--dk-color-bg) 70%, white 30%);
+  --dk-connect-color-btn: color-mix(in srgb, var(--dk-color-bg) 95%, black 5%);
+  --dk-connect-color-hvr: color-mix(in srgb, var(--dk-color-bg) 90%, black 10%);
+  --dk-bar-bg: color-mix(in srgb, var(--dk-surface) 30%, transparent);
+  --dk-menu-border: color-mix(in srgb, var(--dk-color-txt) 14%, transparent);
 }
 
-[data-theme="dark"] {
-  --dk-connect-color-btn: color-mix(in srgb, var(--color-bg) 90%, white 10%);
-  --dk-connect-color-hvr: color-mix(
-    in srgb,
-    var(--dk-connect-color-btn) 86%,
-    white 14%
-  );
+:root[data-theme="dark"] {
+  --dk-surface: color-mix(in srgb, var(--dk-color-bg) 60%, black 40%);
+  --dk-connect-color-btn: color-mix(in srgb, var(--dk-color-bg) 90%, black 10%);
+  --dk-connect-color-hvr: color-mix(in srgb, var(--dk-color-bg) 99%, black 1%);
+  --dk-menu-border: color-mix(in srgb, var(--dk-color-txt) 12%, transparent);
 }
 
 /* ============================================================
    GLOBAL RESETS
-   ========================================================= */
+   ============================================================ */
 
 * {
   margin: 0;
@@ -128,477 +129,476 @@ input {
 }
 
 /* ============================================================
-   WALLET CONNECTION
-   ========================================================= */
+   COMPONENT: Top bar
+   ============================================================ */
 
-.connect-widget {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--dk-gap-sm);
-  user-select: none;
-  z-index: var(--dk-z-widget);
+
+.dk-bar,
+.dk-group {
+  isolation: isolate;
 }
 
-.connect-wallet-list button,
-.connect-get-wallet,
-#connect-rpc,
-.connect-modal #theme-btn {
+.dk-bar::before,
+.dk-group::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: var(--dk-bar-bg);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.dk-bar {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + var(--dk-bar-gap));
+  left: calc(env(safe-area-inset-left, 0px) + var(--dk-bar-gap));
+  right: calc(env(safe-area-inset-right, 0px) + var(--dk-bar-gap));
+  z-index: 900;
+  height: var(--dk-bar-h);
+  padding: 0 var(--dk-space-md) 0 var(--dk-space-xl);
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  border-radius: 20px;
+  user-select: none;
+}
+
+.dk-brand {
+  font-size: var(--dk-font-20);
+  font-weight: var(--dk-weight-bold);
+  letter-spacing: 0.08em;
+  color: var(--dk-color-txt);
+}
+
+.dk-widget {
+  display: flex;
+  align-items: center;
+  gap: var(--dk-gap-md);
+}
+
+.dk-group {
+  display: flex;
+  align-items: center;
+  gap: var(--dk-gap-md);
+}
+
+.dk-group::before {
+  display: none;
+}
+
+.dk-dropdown {
+  position: relative;
+}
+
+.dk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--dk-gap-md);
+  height: var(--dk-btn-height);
+  padding: 0 var(--dk-space-md);
+  font-size: var(--dk-font-md);
+  font-family: inherit;
+  color: var(--dk-color-txt);
+  background-color: transparent;
+  border: var(--dk-border-medium) solid transparent;
+  border-radius: var(--dk-radius-xl);
+  cursor: pointer;
+  transition:
+    background-color var(--dk-transition),
+    border-color var(--dk-transition);
+}
+
+.dk-btn:hover {
+  border-color: color-mix(in srgb, var(--dk-color-txt) 25%, transparent);
+}
+
+.dk-btn[aria-expanded="true"] {
+  background-color: var(--dk-surface);
+}
+
+.dk-btn:focus-visible {
+  outline: var(--dk-border-medium) solid currentColor;
+  outline-offset: 2px;
+}
+
+.dk-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: var(--dk-opacity-60);
+  transition: transform var(--dk-transition);
+}
+
+.dk-btn[aria-expanded="true"] .dk-chevron,
+.dk-accordion-btn[aria-expanded="true"] .dk-chevron {
+  transform: rotate(180deg);
+}
+
+.dk-icon-btn {
+  width: var(--dk-btn-height);
+  padding: 0;
+  border-radius: var(--dk-radius-round);
+}
+
+.dk-icon-btn:hover {
+  border-color: transparent;
+  background-color: var(--dk-connect-color-btn);
+}
+
+.dk-icon-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* ============================================================
+   COMPONENT: Dropdown menus
+   Max 640px wide, fill the screen below the top bar (5px gaps)
+   ============================================================ */
+
+   .dk-menu {
+     position: absolute;
+     top: calc(
+       100% + (var(--dk-bar-h) - var(--dk-btn-height)) / 2 + var(--dk-bar-gap)
+     );
+     right: 0;
+     z-index: var(--dk-z-modal);
+     width: max-content;
+     min-width: 220px;
+     max-width: 320px;
+     max-height: calc(
+       100dvh - var(--dk-bar-h) - var(--dk-bar-gap) * 4 -
+         env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+     );
+     padding: var(--dk-space-md);
+     overflow-y: auto;
+     overscroll-behavior: contain;
+     background-color: var(--dk-surface);
+     border: var(--dk-border-medium) solid var(--dk-menu-border);
+     border-radius: 20px;
+     opacity: 0;
+     transform: scale(0.97);
+     transform-origin: top right;
+     pointer-events: none;
+     transition:
+       opacity var(--dk-transition),
+       transform var(--dk-transition);
+   }
+
+   .dk-chain-menu {
+     right: auto;
+     left: 0;
+     transform-origin: top left;
+   }
+
+   .dk-settings-menu {
+     min-width: 260px;
+   }
+
+.dk-menu.show {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+
+.dk-menu-item {
+  display: flex;
+  align-items: center;
+  gap: var(--dk-gap-lg);
   width: 100%;
-  height: var(--dk-btn-height-lg);
-  margin-top: 2.5px;
+  padding: var(--dk-space-lg) var(--dk-space-lg);
+  font: inherit;
   font-size: var(--dk-font-md);
   color: var(--dk-color-txt);
-  background-color: var(--dk-connect-color-btn);
+  text-align: left;
+  background: transparent;
   border: none;
+  border-radius: var(--dk-radius-xl);
   cursor: pointer;
+  transition:
+    background-color var(--dk-transition),
+    color var(--dk-transition);
+}
+
+.dk-menu-item:hover {
+  background-color: var(--dk-connect-color-btn);
+}
+
+.dk-menu-item[hidden] {
+  display: none;
+}
+
+.dk-item-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================
+   COMPONENT: ChainSelect
+   ============================================================ */
+
+.dk-chain-btn img {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--dk-radius-round);
+  flex-shrink: 0;
+}
+
+.dk-chain-btn #chain-btn-label {
+  max-width: 120px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.dk-chain-item img {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--dk-radius-round);
+  flex-shrink: 0;
+}
+
+.dk-chain-item .dk-dot {
+  display: none;
+}
+
+.dk-chain-item.active .dk-dot {
+  display: block;
+}
+
+/* ============================================================
+   COMPONENT: WalletConnect
+   ============================================================ */
+
+.dk-connect-btn.name-resolved {
+  padding: 0 var(--dk-space-md);
+}
+
+.dk-connect-btn.name-resolved img {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--dk-radius-round);
+  flex-shrink: 0;
+}
+
+.dk-connect-label {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.resolved-name {
+  display: inline-block;
+  max-width: 140px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-size: inherit;
+  line-height: 1.2;
+}
+
+.dk-wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dk-wallet-item img {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--dk-radius-md);
+  flex-shrink: 0;
+}
+
+.dk-dot {
+  width: var(--dk-icon-xs);
+  height: var(--dk-icon-xs);
+  background-color: rgb(var(--dk-color-green));
+  border-radius: var(--dk-radius-round);
+  flex-shrink: 0;
+  animation: connect-pulse var(--dk-anim-pulse) ease-out infinite;
+}
+
+@keyframes connect-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(var(--dk-color-green), 0.5); }
+  70% { box-shadow: 0 0 0 var(--dk-gap-xs) rgba(var(--dk-color-green), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--dk-color-green), 0); }
+}
+
+.dk-get-wallet a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: var(--dk-space-lg);
+  font-size: var(--dk-font-md);
+  color: var(--dk-color-txt);
+  text-decoration: none;
+  border-radius: var(--dk-radius-xl);
   transition: background-color var(--dk-transition);
 }
 
-.connect-wallet-list button:hover,
-.connect-get-wallet:hover,
-#connect-rpc:hover,
-.connect-modal #theme-btn:hover {
-  background-color: var(--dk-connect-color-hvr);
+.dk-get-wallet a:hover {
+  background-color: var(--dk-connect-color-btn);
 }
 
-.connect-wallet-list button,
-#connect-rpc {
-  position: relative;
+.dk-copy-item svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: var(--dk-opacity-60);
 }
 
-.connect-btn {
+/* ============================================================
+   COMPONENT: Settings + Theme
+   ============================================================ */
+
+.dk-theme-segment {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: var(--dk-gap-lg);
+  background-color: var(--dk-connect-color-btn);
+  border-radius: var(--dk-radius-xl);
+}
+
+.dk-theme-segment button {
+  padding: var(--dk-space-md) var(--dk-space-sm);
+  font: inherit;
+  font-size: var(--dk-font-sm);
+  color: var(--dk-color-txt);
+  background: transparent;
+  border: none;
+  border-radius: var(--dk-radius-lg);
+  cursor: pointer;
+  opacity: var(--dk-opacity-70);
+  transition:
+    background-color var(--dk-transition),
+    opacity var(--dk-transition);
+}
+
+.dk-theme-segment button:hover {
+  opacity: 1;
+}
+
+.dk-theme-segment button.active {
+  opacity: 1;
+  background-color: var(--dk-surface);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.dk-settings-block {
+  display: flex;
+  flex-direction: column;
+  padding-top: var(--dk-gap-sm);
+}
+
+.dk-accordion-btn {
   display: flex;
   align-items: center;
-  height: var(--dk-btn-height);
-  padding: var(--dk-space-sm) var(--dk-space-lg);
-  font-size: var(--dk-font-lg);
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--dk-space-lg);
+  font: inherit;
+  font-size: var(--dk-font-md);
   color: var(--dk-color-txt);
-  background: var(--dk-color-bg);
+  background: transparent;
   border: none;
   border-radius: var(--dk-radius-xl);
   cursor: pointer;
   transition: background-color var(--dk-transition);
 }
 
-.connect-btn:hover {
+.dk-accordion-btn:hover {
   background-color: var(--dk-connect-color-btn);
 }
 
-.connect-btn.connected {
-  gap: var(--dk-gap-md);
+.dk-accordion-panel {
+  display: grid;
+  grid-template-rows: 0fr;
 }
 
-.connect-btn.name-resolved {
-  flex-direction: row-reverse;
-  justify-content: space-between;
-  height: auto;
-  padding: var(--dk-gap-sm) var(--dk-space-md);
+.dk-accordion-panel.open {
+  grid-template-rows: 1fr;
 }
 
-.connect-btn.name-resolved img {
-  margin-right: 0;
-}
-
-.connect-btn.connected:not(.name-resolved) {
-  font-size: var(--dk-font-sm);
-}
-
-.connect-btn img {
-  width: var(--dk-icon-xl);
-  height: var(--dk-icon-xl);
-  margin-right: var(--dk-gap-sm);
-  border: var(--dk-border-thin) solid var(--color-bg);
-}
-
-.name-details {
+.dk-accordion-inner {
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  gap: var(--dk-gap-lg);
 }
 
-.resolved-name {
-  display: flex;
-  align-items: center;
-  font-size: var(--dk-font-sm);
-}
-
-.named-address-row {
-  display: flex;
-  align-items: center;
-  gap: var(--dk-gap-xs);
-}
-
-.named-address {
-  font-size: var(--dk-font-xs);
-  opacity: var(--dk-opacity-70);
-}
-
-.connect-address-text {
-  display: inline-flex;
-  align-items: center;
-}
-
-.connect-copy-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--dk-icon-sm);
-  height: var(--dk-icon-sm);
-  border-radius: var(--dk-radius-sm);
-  flex-shrink: 0;
-}
-
-.connect-copy-btn svg {
-  display: block;
-  width: 14px;
-  height: 14px;
-}
-
-.named-address-row .connect-copy-btn {
-  width: var(--dk-icon-xs);
-  height: var(--dk-icon-xs);
-}
-
-.named-address-row .connect-copy-btn svg {
-  width: var(--dk-icon-2xs);
-  height: var(--dk-icon-2xs);
-}
-
-.connect-modal {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: var(--dk-space-md);
-  min-width: 190px;
-  padding: var(--dk-gap-sm);
-  background-color: var(--color-bg);
-  border: var(--dk-border-thin) solid var(--dk-connect-color-btn);
-  border-radius: var(--dk-radius-2xl);
-  opacity: 0;
-  transform: scale(0.9);
-  pointer-events: none;
-  transition:
-    opacity var(--dk-transition),
-    transform var(--dk-transition);
-}
-
-.connect-modal.show {
-  opacity: 1;
-  transform: scale(1);
-  pointer-events: auto;
-}
-
-.connect-chain-list {
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  max-width: 100%;
-  height: var(--dk-btn-height-lg);
-  padding: var(--dk-space-sm);
-  margin: 0;
-  background-color: var(--dk-connect-color-btn);
-  border-radius: var(--dk-radius-2xl) var(--dk-radius-2xl) 0 0;
-  box-sizing: border-box;
-  transition: background-color var(--dk-transition);
-}
-
-.connect-chain-list:hover {
-  background-color: var(--dk-connect-color-hvr);
-}
-
-.connect-chain-list button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  margin: 0;
-  font-size: var(--dk-font-md);
-  color: var(--dk-color-txt);
-  background-color: transparent;
-  border: none;
-  cursor: pointer;
-}
-
-.connect-chain-list button img {
-  width: var(--dk-icon-xl);
-  height: var(--dk-icon-xl);
-  border: var(--dk-border-thin) solid var(--color-bg);
-  border-radius: var(--dk-radius-round);
-  flex-shrink: 0;
-  transition: transform var(--dk-transition);
-}
-
-.connect-chain-list button img:hover {
-  transform: scale(1.1);
-}
-
-.connect-chain-list button.chain-single {
-  display: flex;
-  flex: 1;
-  justify-content: flex-start;
-}
-
-.connect-chain-list button.chain-single img {
-  width: var(--dk-icon-xl);
-  height: var(--dk-icon-xl);
-  margin-right: var(--dk-gap-md);
-}
-
-.connect-chain-list button.chain-single .connect-name {
-  flex: 1;
-  text-align: left;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.connect-chain-list button.chain-single .connect-dot {
-  position: absolute;
-  right: var(--dk-space-sm);
-}
-
-.connect-wallet-list button {
-  padding: var(--dk-space-sm) var(--dk-space-2xl) var(--dk-space-sm)
-    var(--dk-space-sm);
-  margin-bottom: 2.5px;
-  white-space: nowrap;
-}
-
-.connect-wallet-list button:last-child {
-  margin-bottom: 0;
-  border-radius: 0 0 var(--dk-radius-2xl) var(--dk-radius-2xl);
-}
-
-.connect-wallet-list button img {
-  width: var(--dk-icon-xl);
-  height: var(--dk-icon-xl);
-  margin-right: var(--dk-gap-md);
-  border-radius: var(--dk-gap-sm);
-}
-
-.connect-get-wallet {
-  border-radius: 0 0 var(--dk-radius-2xl) var(--dk-radius-2xl);
-}
-
-.connect-get-wallet a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  color: var(--dk-color-txt);
-  text-decoration: none;
-}
-
-.connect-dot {
-  position: absolute;
-  right: var(--dk-space-lg);
-  width: var(--dk-icon-xs);
-  height: var(--dk-icon-xs);
-  background-color: rgb(var(--dk-color-green));
-  border-radius: var(--dk-radius-round);
-  animation: connect-pulse var(--dk-anim-pulse) ease-out infinite;
-}
-
-.connect-dot-icon {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: var(--dk-icon-xs);
-  height: var(--dk-icon-xs);
-  background-color: rgb(var(--dk-color-green));
-  border: var(--dk-border-thin) solid var(--color-bg);
-  border-radius: var(--dk-radius-round);
-}
-
-@keyframes connect-pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(var(--dk-color-green), 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 var(--dk-gap-xs) rgba(var(--dk-color-green), 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(var(--dk-color-green), 0);
-  }
-}
-
-/* ============================================================
-   RPC MODAL
-   ========================================================= */
-
-#connect-rpc {
-  padding: var(--dk-space-sm) var(--dk-space-2xl) var(--dk-space-sm)
-    var(--dk-space-sm);
-  white-space: nowrap;
-}
-
-#connect-rpc svg {
-  width: var(--dk-icon-lg);
-  height: var(--dk-icon-lg);
-  margin-right: var(--dk-gap-md);
-  flex-shrink: 0;
-  transition: transform var(--dk-transition-smooth);
-}
-
-#connect-rpc[data-spin="true"] svg {
-  transform: rotate(-90deg);
-}
-
-.rpc-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: var(--dk-z-modal);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  background-color: var(--dk-modal-overlay);
-  opacity: 0;
-  pointer-events: none;
-  overflow: auto;
-  transition: opacity var(--dk-transition);
-}
-
-.rpc-modal.show {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.rpc-modal-content {
-  position: relative;
-  width: var(--dk-modal-width);
-  max-width: var(--dk-modal-max-width);
-  padding: var(--dk-space-xl);
-  color: var(--dk-color-txt);
-  background-color: var(--color-bg);
-  border-radius: var(--dk-radius-2xl);
-  border: var(--dk-border-thin) solid var(--dk-connect-color-btn);
-  transform: scale(0.9);
-  transition: transform var(--dk-transition);
-}
-
-.rpc-modal.show .rpc-modal-content {
-  transform: scale(1);
-}
-
-.rpc-close-btn,
-.notif-close {
-  position: relative;
-  display: block;
-  width: var(--dk-icon-md);
-  height: var(--dk-icon-md);
-  padding: 0;
-  font-size: 0;
-  line-height: 0;
-  appearance: none;
-  -webkit-appearance: none;
-  color: currentColor;
-  background: none;
-  border: none;
-  border-radius: var(--dk-radius-round);
-  cursor: pointer;
-  transition: background-color var(--dk-transition);
-}
-
-.rpc-close-btn::before,
-.rpc-close-btn::after,
-.notif-close::before,
-.notif-close::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 12px;
-  height: 2px;
-  background-color: currentColor;
-  border-radius: 1px;
-  translate: -50% -50%;
-  pointer-events: none;
-}
-
-.rpc-close-btn::before,
-.notif-close::before {
-  rotate: 45deg;
-}
-
-.rpc-close-btn::after,
-.notif-close::after {
-  rotate: -45deg;
-}
-
-.rpc-close-btn {
-  position: absolute;
-  top: var(--dk-space-lg);
-  right: var(--dk-space-lg);
-}
-
-.rpc-close-btn:hover {
-  background-color: var(--dk-connect-color-btn);
-}
-
-.rpc-close-btn:focus-visible,
-.notif-close:focus-visible {
-  outline: var(--dk-border-thin) solid currentColor;
-  outline-offset: 2px;
+.dk-accordion-panel.open .dk-accordion-inner {
+  padding: var(--dk-space-md) var(--dk-space-sm) var(--dk-space-sm);
 }
 
 #rpc-inputs {
   display: grid;
-  gap: var(--dk-gap-xl);
-  margin: var(--dk-space-xl) 0;
+  gap: var(--dk-gap-lg);
 }
 
 #rpc-inputs div {
   display: flex;
   flex-direction: column;
-  gap: var(--dk-gap-sm);
+  gap: var(--dk-gap-xs);
 }
 
 #rpc-inputs label {
-  font-size: var(--dk-font-md);
-  font-weight: var(--dk-weight-medium);
+  font-size: var(--dk-font-sm);
+  color: color-mix(in srgb, var(--dk-color-txt) 45%, transparent);
 }
 
 #rpc-inputs input {
-  padding: var(--dk-space-sm) var(--dk-space-lg);
+  width: 100%;
+  padding: var(--dk-space-md);
   font-size: var(--dk-font-md);
   color: var(--dk-color-txt);
-  background-color: var(--color-bg);
-  border: var(--dk-border-thin) solid var(--dk-connect-color-btn);
-  border-radius: var(--dk-radius-md);
+  background-color: var(--dk-connect-color-btn);
+  border: var(--dk-border-medium) solid transparent;
+  border-radius: var(--dk-radius-lg);
+  outline: none;
+}
+
+#rpc-inputs input::placeholder {
+  color: color-mix(in srgb, var(--dk-color-txt) 45%, transparent);
+  opacity: 1;
 }
 
 #rpc-inputs input:focus {
-  outline: none;
-  border-color: var(--dk-connect-color-hvr);
+  border-color: color-mix(in srgb, var(--dk-color-txt) 25%, transparent);
 }
 
-#save-rpc-btn {
+.dk-save-btn {
   width: 100%;
   padding: var(--dk-space-md);
-  font-size: var(--dk-font-lg);
+  font: inherit;
+  font-size: var(--dk-font-md);
   font-weight: var(--dk-weight-medium);
   color: var(--dk-color-txt);
   background-color: var(--dk-connect-color-btn);
   border: none;
-  border-radius: var(--dk-radius-md);
+  border-radius: var(--dk-radius-lg);
   cursor: pointer;
   transition: background-color var(--dk-transition);
 }
 
-#save-rpc-btn:hover {
+.dk-save-btn:hover {
   background-color: var(--dk-connect-color-hvr);
 }
 
 /* ============================================================
-   UTILITIES
-   ========================================================= */
+   COMPONENT: Copy
+   Remove this section with the Copy block
+   ============================================================ */
 
 [data-copy] {
   position: relative;
@@ -626,8 +626,9 @@ input {
 }
 
 /* ============================================================
-   NOTIFICATIONS
-   ========================================================= */
+   COMPONENT: Notifications
+   Remove this section with the Notification block
+   ============================================================ */
 
 #notificationContainer {
   position: fixed;
@@ -682,18 +683,57 @@ input {
   padding: var(--dk-notif-padding);
   font-size: var(--dk-font-16);
   font-weight: var(--dk-weight-medium);
-  color: rgb(var(--dk-notif-color));
-  background-color: rgba(var(--dk-notif-color), 0.1);
+  color: color-mix(in srgb, var(--dk-color-txt) 60%, transparent);
+  background-color: var(--dk-connect-color-btn);
   border-left: var(--dk-notif-border-size) solid rgb(var(--dk-notif-color));
   border-radius: var(--dk-radius-lg);
-  box-shadow: 0 var(--dk-gap-xs) var(--dk-gap-md)
-    rgba(var(--dk-notif-color), 0.15);
-  backdrop-filter: blur(var(--dk-space-xl));
   overflow: hidden;
 }
 
 .notif-close {
+  position: relative;
+  display: block;
+  width: var(--dk-icon-md);
+  height: var(--dk-icon-md);
+  padding: 0;
+  font-size: 0;
+  line-height: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  color: currentColor;
+  background: none;
+  border: none;
+  border-radius: var(--dk-radius-round);
+  cursor: pointer;
+  transition: background-color var(--dk-transition);
   flex-shrink: 0;
+}
+
+.notif-close::before,
+.notif-close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 2px;
+  background-color: currentColor;
+  border-radius: 1px;
+  translate: -50% -50%;
+  pointer-events: none;
+}
+
+.notif-close::before {
+  rotate: 45deg;
+}
+
+.notif-close::after {
+  rotate: -45deg;
+}
+
+.notif-close:focus-visible {
+  outline: var(--dk-border-thin) solid currentColor;
+  outline-offset: 2px;
 }
 
 .notif-close:hover {
@@ -706,19 +746,17 @@ input {
   left: 0;
   right: 0;
   height: var(--dk-notif-progress-height);
-  background-color: currentColor;
-  opacity: var(--dk-opacity-60);
-  transform-origin: left;
-  animation: progress linear;
+  background-color: rgb(var(--dk-notif-color));
+  transform-origin: left center;
+  animation-name: notif-progress;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+  pointer-events: none;
 }
 
-@keyframes progress {
-  from {
-    transform: scaleX(1);
-  }
-  to {
-    transform: scaleX(0);
-  }
+@keyframes notif-progress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
 }
 
 .tx-icon {
@@ -803,13 +841,60 @@ input {
 
 /* ============================================================
    RESPONSIVE DESIGN
-   ========================================================= */
+   Mobile: chain + wallet move to their own bottom bar
+   ============================================================ */
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
+  .dk-bar {
+    padding-left: var(--dk-space-xl);
+  }
+
+  .dk-group {
+    position: fixed;
+    z-index: 1;
+    left: calc(env(safe-area-inset-left, 0px) + var(--dk-bar-gap));
+    right: calc(env(safe-area-inset-right, 0px) + var(--dk-bar-gap));
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--dk-bar-gap));
+    height: var(--dk-bar-h);
+    padding: 0 var(--dk-space-md);
+    justify-content: space-between;
+    border-radius: 20px;
+  }
+
+  .dk-group::before {
+    display: block;
+  }
+
+  .dk-menu {
+    position: fixed;
+    top: calc(
+      env(safe-area-inset-top, 0px) + var(--dk-bar-gap) * 2 + var(--dk-bar-h)
+    );
+    bottom: calc(
+      env(safe-area-inset-bottom, 0px) + var(--dk-bar-gap) * 2 + var(--dk-bar-h)
+    );
+    left: calc(env(safe-area-inset-left, 0px) + var(--dk-bar-gap));
+    right: calc(env(safe-area-inset-right, 0px) + var(--dk-bar-gap));
+    width: auto;
+    min-width: 0;
+    max-width: var(--dk-menu-max);
+    max-height: none;
+    margin-inline: auto;
+    border: none;
+    transform-origin: top center;
+  }
+
+  .dk-chain-menu {
+    left: calc(env(safe-area-inset-left, 0px) + var(--dk-bar-gap));
+    right: calc(env(safe-area-inset-right, 0px) + var(--dk-bar-gap));
+  }
+
   #notificationContainer {
     left: var(--dk-space-md);
     right: var(--dk-space-md);
-    bottom: var(--dk-space-md);
+    bottom: calc(
+      env(safe-area-inset-bottom, 0px) + var(--dk-bar-gap) * 3 + var(--dk-bar-h)
+    );
     max-width: none;
   }
 
@@ -827,75 +912,4 @@ input {
     width: 16px;
     height: 16px;
   }
-}
-
-/* ============================================================
-   THEME TOGGLE
-   ========================================================= */
-
-#theme-btn {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: var(--dk-icon-lg);
-  height: var(--dk-icon-lg);
-  color: var(--dk-color-txt);
-  background: 0;
-  border: 0;
-  opacity: var(--dk-opacity-60);
-  cursor: pointer;
-  transition: opacity var(--dk-transition);
-}
-
-#theme-btn:hover {
-  opacity: var(--dk-opacity-90);
-}
-
-#theme-btn svg {
-  position: absolute;
-  opacity: 0;
-  transform: rotate(-90deg);
-  transition: var(--dk-transition-smooth);
-}
-
-.connect-modal #theme-btn {
-  font-size: inherit;
-  justify-content: flex-start;
-  padding: var(--dk-space-sm);
-  opacity: 1;
-}
-
-.connect-modal #theme-btn svg {
-  top: 50%;
-  left: var(--dk-space-sm);
-  translate: 0 -50%;
-}
-
-.connect-modal #theme-btn .connect-theme-text {
-  margin-left: calc(var(--dk-icon-lg) + var(--dk-gap-md));
-  margin-right: var(--dk-gap-md);
-  font-size: var(--dk-font-md);
-  line-height: 1;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-.connect-modal #theme-btn .connect-theme-text::before {
-  content: var(--dk-theme-label, "System");
-}
-
-[data-theme-source="light"] {
-  --dk-theme-label: "Light";
-}
-
-[data-theme-source="dark"] {
-  --dk-theme-label: "Dark";
-}
-
-[data-selected-theme="light"][data-theme-source="light"] #theme-light,
-[data-selected-theme="dark"][data-theme-source="dark"] #theme-dark,
-[data-theme-source="system"] #theme-system {
-  opacity: 1;
-  transform: rotate(0);
 }

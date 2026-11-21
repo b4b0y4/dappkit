@@ -2,66 +2,54 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
     <!-- Primary Meta -->
     <meta name="title" content="dappkit" />
-    <meta
-      name="description"
-      content="A minimal dependency starter template for decentralized applications."
-    />
+    <meta name="description" content="A minimal dependency starter template for decentralized applications." />
 
     <!-- Open Graph Meta Tags -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://b4b0y4.github.io/dappkit/" />
     <meta property="og:title" content="dappkit" />
-    <meta
-      property="og:description"
-      content="A minimal dependency starter template for decentralized applications."
-    />
-    <meta
-      property="og:image"
-      content="https://b4b0y4.github.io/dappkit/assets/img/dappkit.png"
-    />
+    <meta property="og:description" content="A minimal dependency starter template for decentralized applications." />
+    <meta property="og:image" content="https://b4b0y4.github.io/dappkit/assets/img/dappkit.png" />
 
     <!-- Twitter Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta property="twitter:url" content="https://b4b0y4.github.io/dappkit/" />
     <meta name="twitter:title" content="dappkit" />
-    <meta
-      name="twitter:description"
-      content="A minimal dependency starter template for decentralized applications."
-    />
-    <meta
-      name="twitter:image"
-      content="https://b4b0y4.github.io/dappkit/assets/img/dappkit.png"
-    />
+    <meta name="twitter:description" content="A minimal dependency starter template for decentralized applications." />
+    <meta name="twitter:image" content="https://b4b0y4.github.io/dappkit/assets/img/dappkit.png" />
     <title>dappkit</title>
     <script>
       (() => {
-        const m = localStorage.themeMode;
-        const t =
-          m === "light" || m === "dark"
-            ? m
-            : matchMedia("(prefers-color-scheme: dark)").matches
+        const mode = localStorage.themeMode;
+        const system = matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme =
+          mode === "light" || mode === "dark"
+            ? mode
+            : system
               ? "dark"
               : "light";
-        document.documentElement.dataset.theme = t;
+        Object.assign(document.documentElement.dataset, {
+          theme,
+          themeSource:
+            mode === "light" || mode === "dark" ? mode : "system",
+          selectedTheme: mode === "light" || mode === "dark" ? mode : "",
+        });
       })();
     </script>
     <link rel="stylesheet" href="./assets/css/styleKit.css" />
     <style>
-      :root {
-        --color-bg: #f5f5f5;
-        --color-txt: #17202a;
-      }
-      [data-theme="dark"] {
-        --color-bg: #17202a;
-        --color-txt: #f5f5f5;
-      }
+    :root {
+      --color-bg: #8fb8f0;
+      --color-txt: #12263f;
+    }
+    [data-theme="dark"] {
+      --color-bg: #1f3a5a;
+      --color-txt: #eef4fb;
+    }
       html {
         block-size: 100dvh;
         inline-size: 100%;
@@ -73,25 +61,24 @@
         background: var(--color-bg);
         color: var(--color-txt);
         font-family: "Helvetica Neue", system-ui, sans-serif;
-        transition:
-          background 0.3s,
-          color 0.3s;
+        transition: background 0.3s, color 0.3s;
         padding: 20px;
+        padding-top: 80px;
+      }
+      @media (max-width: 600px) {
+        body { padding-bottom: 90px; }
       }
       /* Demo layout (safe to remove) */
-      .wrapper {
-        display: flex;
-        justify-content: end;
-        align-items: center;
-        width: 100%;
-        gap: 10px;
-      }
       .demo {
         max-width: 500px;
         margin: 15vh auto;
+        padding: 24px;
         display: grid;
         gap: 16px;
         color: var(--color-txt);
+        background-color: var(--dk-surface);
+        border: var(--dk-border-medium) solid var(--dk-menu-border);
+        border-radius: 20px;
       }
       .row {
         display: flex;
@@ -115,85 +102,88 @@
     </style>
   </head>
   <body>
-    <div class="wrapper">
-      <!-- Connect Widget -->
-      <div class="connect-widget">
-        <button id="connect-btn" class="connect-btn">Connect</button>
-        <div id="connect-modal" class="connect-modal">
-          <div class="connect-chain-list" id="connect-chain-list"></div>
-          <!-- Theme Button -->
-          <button id="theme-btn" aria-label="Toggle theme" title="theme">
-            <svg id="theme-light" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="5" />
-              <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
-            </svg>
-            <svg id="theme-dark" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-            <svg id="theme-system" xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke-linejoin="round" />
-            </svg>
-            <span class="connect-theme-text"></span>
-          </button>
-          <button
-            id="connect-rpc"
-            class="connect-rpc"
-            aria-label="Add RPC"
-            title="Add RPC"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="26"
-              height="26"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
+    <!-- Top bar -->
+    <header class="dk-bar">
+      <div class="dk-brand">DAPPKIT</div>
+
+      <div class="dk-widget">
+        <!-- Chain + wallet (moves to its own bottom bar on mobile) -->
+        <div class="dk-group">
+          <!-- Chain select -->
+          <div class="dk-dropdown" data-dropdown="chain">
+            <button
+              id="chain-btn"
+              class="dk-btn dk-chain-btn"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded="false"
+              title="Select network"
             >
-              <circle cx="12" cy="12" r="3"></circle>
-              <path
-                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
-              ></path>
-            </svg>
-            Add RPC
-          </button>
-          <div id="connect-get-wallet" class="connect-get-wallet">
-            <a href="https://ethereum.org/en/wallets/" target="_blank"
-              >Get a Wallet!</a
-            >
+              <img id="chain-btn-icon" src="./assets/img/eth.png" alt="" />
+              <span id="chain-btn-label">Ethereum</span>
+              <svg class="dk-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            </button>
+            <div id="chain-menu" class="dk-menu dk-chain-menu" role="listbox" aria-label="Networks"></div>
           </div>
-          <div id="connect-wallet-list" class="connect-wallet-list"></div>
+
+          <!-- Wallet connect -->
+          <div class="dk-dropdown" data-dropdown="wallet">
+            <button id="connect-btn" class="dk-btn dk-connect-btn" type="button" aria-haspopup="menu" aria-expanded="false">
+              <span class="dk-connect-label">Connect</span>
+            </button>
+            <div id="connect-menu" class="dk-menu dk-wallet-menu" role="menu" aria-label="Wallets">
+              <div id="connect-wallet-list" class="dk-wallet-list"></div>
+              <div id="connect-get-wallet" class="dk-get-wallet">
+                <a href="https://ethereum.org/en/wallets/" target="_blank" rel="noopener noreferrer">Get a Wallet!</a>
+              </div>
+              <button id="copy-address-btn" class="dk-menu-item dk-copy-item" type="button" role="menuitem" hidden>Copy Address</button>
+              <button id="disconnect-btn" class="dk-menu-item dk-danger-item" type="button" role="menuitem" hidden>Disconnect</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Settings -->
+        <div class="dk-dropdown" data-dropdown="settings">
+          <button id="settings-btn" class="dk-btn dk-icon-btn" type="button" aria-label="Settings" aria-haspopup="menu" aria-expanded="false" title="Settings">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <div id="settings-menu" class="dk-menu dk-settings-menu" role="menu" aria-label="Settings">
+            <div class="dk-theme-segment" role="radiogroup" aria-label="Theme">
+              <button type="button" data-theme-mode="system" role="radio" aria-checked="false">System</button>
+              <button type="button" data-theme-mode="light" role="radio" aria-checked="false">Light</button>
+              <button type="button" data-theme-mode="dark" role="radio" aria-checked="false">Dark</button>
+            </div>
+
+            <!-- RPC accordion -->
+            <div class="dk-settings-block">
+              <button id="rpc-toggle" class="dk-accordion-btn" type="button" aria-expanded="false" aria-controls="rpc-panel">
+                <span>Add RPC URL</span>
+                <svg class="dk-chevron" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="m6 9 6 6 6-6" />
+                </svg>
+              </button>
+              <div id="rpc-panel" class="dk-accordion-panel">
+                <div class="dk-accordion-inner">
+                  <div id="rpc-inputs"></div>
+                  <button id="save-rpc-btn" class="dk-save-btn" type="button">Save RPC</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-
-    <!-- RPC Settings Modal -->
-    <div id="rpc-modal" class="rpc-modal">
-      <div class="rpc-modal-content">
-        <button type="button" class="rpc-close-btn" aria-label="Close"></button>
-        <h2>Custom RPC Settings</h2>
-        <div id="rpc-inputs"></div>
-        <button id="save-rpc-btn">Save</button>
-      </div>
-    </div>
+    </header>
 
     <!-- Notifications Container -->
     <div id="notificationContainer"></div>
 
     <!--Demo (safe to remove) -->
     <div class="demo">
-      <div class="row">
-        <strong>dappkit:</strong>
-        <a
-          href="https://github.com/b4b0y4/dappkit"
-          target="_blank"
-          style="color: var(--primary-color)"
-          >GitHub</a
-        >
-      </div>
       <div class="row">
         <strong>Copy:</strong>
         <button
@@ -214,38 +204,16 @@
         <strong>Transaction:</strong>
         <button class="btn" id="demo-tx">Send Demo TX</button>
       </div>
+      <div class="row">
+        <a
+          href="https://github.com/b4b0y4/dappkit"
+          target="_blank"
+          style="color: var(--primary-color)"
+          >GitHub</a
+        >
+      </div>
     </div>
 
-    <script>
-      // theme.js
-      (() => {
-        const order = ["system", "light", "dark"];
-        const mq = matchMedia("(prefers-color-scheme: dark)");
-        const apply = () => {
-          const m = localStorage.themeMode || "system";
-          const t = m === "system" ? (mq.matches ? "dark" : "light") : m;
-          Object.assign(document.documentElement.dataset, {
-            theme: t,
-            themeSource: m,
-            selectedTheme: m === "system" ? "" : m,
-          });
-        };
-        const cycle = () => {
-          const m = localStorage.themeMode || "system";
-          localStorage.themeMode = order[(order.indexOf(m) + 1) % 3];
-          apply();
-        };
-        document.addEventListener("DOMContentLoaded", () => {
-          const btn = document.getElementById("theme-btn");
-          if (btn) btn.onclick = cycle;
-          mq.addEventListener(
-            "change",
-            () => (localStorage.themeMode || "system") === "system" && apply(),
-          );
-          apply();
-        });
-      })();
-    </script>
     <script type="module" src="./js/app.js"></script>
   </body>
 </html>

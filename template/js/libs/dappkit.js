@@ -1,5 +1,9 @@
 import { ethers } from "./ethers.min.js";
 
+/* ============================================================
+   CONFIG
+   ============================================================ */
+
 const NAMING_ABI = [
   {
     inputs: [{ internalType: "address", name: "addr", type: "address" }],
@@ -106,6 +110,10 @@ export const networkConfigs = {
   },
 };
 
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+
 const normalizeChainId = (chainId) => {
   if (typeof chainId === "string") chainId = chainId.trim();
   const parsed = Number(chainId);
@@ -127,10 +135,12 @@ const escapeHtml = (text) => {
   return d.innerHTML;
 };
 const getVisibleNetworks = () =>
-  Object.entries(networkConfigs).filter(([, c]) => c.showInUI);
+  Object.entries(networkConfigs).filter(([, config]) => config.showInUI);
+const getRpcConfigurableNetworks = () =>
+  getVisibleNetworks().filter(([, config]) => config.rpcConfigurable);
 const getNetworkByChainId = (chainId) =>
   Object.values(networkConfigs).find(
-    (n) => n.chainId === normalizeChainId(chainId),
+    (network) => network.chainId === normalizeChainId(chainId),
   );
 const hasChainChanged = (prev, next) => {
   const n = normalizeChainId(next);
@@ -152,56 +162,61 @@ const onReady = (cb) =>
     ? document.addEventListener("DOMContentLoaded", cb)
     : cb();
 
-const rpcModal = document.getElementById("rpc-modal");
-const toggleRpcModal = (show) => rpcModal?.classList.toggle("show", show);
+const notify = (message, type = "info", options = {}) => {
+  if (
+    typeof Notification === "undefined" ||
+    typeof Notification.show !== "function"
+  )
+    return null;
+  return Notification.show(message, type, options);
+};
 
-const getRpcConfigurableNetworks = () =>
-  getVisibleNetworks().filter(([, c]) => c.rpcConfigurable);
-
-function populateRpcInputs() {
-  const rpcInputs = document.getElementById("rpc-inputs");
-  if (!rpcInputs) return;
-  rpcInputs.innerHTML = "";
-  getRpcConfigurableNetworks().forEach(([network, cfg]) => {
-    const div = document.createElement("div");
-    const label = document.createElement("label");
-    label.innerText = cfg.name;
-    const input = Object.assign(document.createElement("input"), {
-      id: `${network}-rpc`,
-      placeholder: "Enter custom RPC URL",
-      value: localStorage.getItem(`${network}-rpc`) || "",
+const openDropdowns = new Set();
+class Dropdown {
+  constructor(button, menu) {
+    this.button = button;
+    this.menu = menu;
+    this.open = false;
+    openDropdowns.add(this);
+    button?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      this.toggle();
     });
-    div.append(label, input);
-    rpcInputs.appendChild(div);
-  });
+    menu?.addEventListener("click", (event) => event.stopPropagation());
+    document.addEventListener("click", () => this.close());
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") this.close();
+    });
+  }
+  toggle() {
+    this.open ? this.close() : this.show();
+  }
+  show() {
+    openDropdowns.forEach((dropdown) => {
+      if (dropdown !== this) dropdown.close();
+    });
+    this.open = true;
+    this.menu?.classList.add("show");
+    this.button?.setAttribute("aria-expanded", "true");
+  }
+  close() {
+    if (!this.open) return;
+    this.open = false;
+    this.menu?.classList.remove("show");
+    this.button?.setAttribute("aria-expanded", "false");
+  }
 }
 
-function saveRpcSettings() {
-  getRpcConfigurableNetworks().forEach(([network]) => {
-    const input = document.getElementById(`${network}-rpc`);
-    if (!input) return;
-    input.value
-      ? localStorage.setItem(`${network}-rpc`, input.value)
-      : localStorage.removeItem(`${network}-rpc`);
-  });
-  toggleRpcModal(false);
-}
+/* ============================================================
+   COMPONENT: Copy
+   Remove this block, its CSS section and `Copy.mount()` in app.js
+   ============================================================ */
 
-document
-  .getElementsByClassName("rpc-close-btn")[0]
-  ?.addEventListener("click", () => toggleRpcModal(false));
-document
-  .getElementById("save-rpc-btn")
-  ?.addEventListener("click", saveRpcSettings);
-window.addEventListener("click", (e) => {
-  if (e.target === rpcModal) toggleRpcModal(false);
-});
-
-class Copy {
+export class Copy {
   static initialized = false;
   static elements = new WeakSet();
 
-  static init() {
+  static mount() {
     if (this.initialized) return;
     this.initialized = true;
     document.addEventListener("click", this.handleClick.bind(this), true);
@@ -262,7 +277,10 @@ class Copy {
   }
 }
 
-onReady(() => Copy.init());
+/* ============================================================
+   COMPONENT: Notification
+   Remove this block, its CSS section and the `<div id="notificationContainer">`
+   ============================================================ */
 
 export class Notification {
   static container = null;
@@ -412,6 +430,373 @@ export class Notification {
   }
 }
 
+/* ============================================================
+   COMPONENT: Theme
+   Remove this block, the settings theme segment, `Theme.mount()`
+   and (optionally) the inline theme script in index.html
+   ============================================================ */
+
+export class Theme {
+  static media = null;
+  static buttons = [];
+  static mounted = false;
+  static modes = ["system", "light", "dark"];
+
+  static mount() {
+    if (this.mounted) return this;
+    this.mounted = true;
+    this.media = matchMedia("(prefers-color-scheme: dark)");
+    this.buttons = [...document.querySelectorAll("[data-theme-mode]")];
+    this.buttons.forEach((button) => {
+      button.addEventListener("click", () =>
+        this.set(button.dataset.themeMode),
+      );
+    });
+    this.media.addEventListener("change", () => {
+      if (this.get() === "system") this.apply();
+    });
+    this.apply();
+    return this;
+  }
+
+  static get() {
+    return localStorage.themeMode || "system";
+  }
+
+  static set(mode) {
+    if (!this.modes.includes(mode)) return;
+    localStorage.themeMode = mode;
+    this.apply();
+  }
+
+  static cycle() {
+    this.set(
+      this.modes[(this.modes.indexOf(this.get()) + 1) % this.modes.length],
+    );
+  }
+
+  static apply() {
+    const mode = this.get();
+    const prefersDark = this.media
+      ? this.media.matches
+      : matchMedia("(prefers-color-scheme: dark)").matches;
+    const resolved = mode === "system" ? (prefersDark ? "dark" : "light") : mode;
+    Object.assign(document.documentElement.dataset, {
+      theme: resolved,
+      themeSource: mode,
+      selectedTheme: mode === "system" ? "" : mode,
+    });
+    this.buttons.forEach((button) => {
+      const active = button.dataset.themeMode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-checked", String(active));
+    });
+  }
+}
+
+/* ============================================================
+   COMPONENT: ChainSelect
+   Remove this block, the chain dropdown HTML, its CSS section
+   and `ChainSelect.mount(wallet)` in app.js
+   ============================================================ */
+
+export class ChainSelect {
+  static wallet = null;
+  static button = null;
+  static icon = null;
+  static label = null;
+  static menu = null;
+  static dropdown = null;
+
+  static mount(wallet) {
+    this.wallet = wallet;
+    this.button = document.querySelector("#chain-btn");
+    this.icon = document.querySelector("#chain-btn-icon");
+    this.label = document.querySelector("#chain-btn-label");
+    this.menu = document.querySelector("#chain-menu");
+    if (!this.button || !this.menu) return this;
+    this.dropdown = new Dropdown(this.button, this.menu);
+    this.render();
+    wallet.subscribe(() => this.render());
+    return this;
+  }
+
+  static render() {
+    if (!this.wallet || !this.menu) return;
+    const networks = this.wallet.getVisibleNetworks();
+    const currentChainId = normalizeChainId(this.wallet.getCurrentChainId());
+    const current =
+      networks.find(([, config]) => config.chainId === currentChainId) ||
+      networks[0];
+
+    if (current) {
+      if (this.icon) {
+        this.icon.src = current[1].icon;
+        this.icon.alt = current[1].name;
+      }
+      if (this.label) this.label.textContent = current[1].name;
+    }
+
+    this.menu.innerHTML = "";
+    networks.forEach(([, config]) => {
+      const active = config.chainId === currentChainId;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "dk-menu-item dk-chain-item";
+      button.setAttribute("role", "option");
+      button.setAttribute("aria-selected", String(active));
+      button.classList.toggle("active", active);
+      button.innerHTML = `<img src="${config.icon}" alt="" /><span class="dk-item-label">${escapeHtml(config.name)}</span><span class="dk-dot" aria-hidden="true"></span>`;
+      button.addEventListener("click", async () => {
+        this.dropdown?.close();
+        if (active) return;
+        if (!this.wallet.isConnected()) {
+          notify("Connect a wallet to switch networks.", "warning");
+          return;
+        }
+        try {
+          await this.wallet.switchNetwork(config);
+        } catch (error) {
+          notify(
+            error?.message || `Failed to switch to ${config.name}`,
+            "error",
+          );
+        }
+      });
+      this.menu.appendChild(button);
+    });
+  }
+}
+
+/* ============================================================
+   COMPONENT: WalletConnect
+   Remove this block, the connect dropdown HTML, its CSS section
+   and `WalletConnect.mount(wallet)` in app.js
+   ============================================================ */
+
+export class WalletConnect {
+  static wallet = null;
+  static button = null;
+  static menu = null;
+  static list = null;
+  static getWallet = null;
+  static copyBtn = null;
+  static disconnectBtn = null;
+  static dropdown = null;
+  static resolveToken = 0;
+  static cache = new Map()
+
+  static mount(wallet) {
+    this.wallet = wallet;
+    this.button = document.querySelector("#connect-btn");
+    this.menu = document.querySelector("#connect-menu");
+    this.list = document.querySelector("#connect-wallet-list");
+    this.getWallet = document.querySelector("#connect-get-wallet");
+    this.copyBtn = document.querySelector("#copy-address-btn");
+    this.disconnectBtn = document.querySelector("#disconnect-btn");
+    if (!this.button || !this.menu) return this;
+    this.dropdown = new Dropdown(this.button, this.menu);
+    this.disconnectBtn?.addEventListener("click", async () => {
+      this.dropdown?.close();
+      await wallet.disconnect();
+    });
+    this.render();
+    wallet.subscribe(() => this.render());
+    return this;
+  }
+
+  static render() {
+    if (!this.wallet) return;
+    const connected = this.wallet.isConnected() && this.wallet.getAddress();
+    this.renderButton(connected);
+    this.renderWallets(connected);
+    this.renderActions(connected);
+  }
+
+  static paintName(resolved) {
+    const avatar = resolved.avatar
+      ? `<img src="${resolved.avatar}" alt="" />`
+      : "";
+    this.button.innerHTML = `<span class="resolved-name">${escapeHtml(resolved.name)}</span>${avatar}`;
+    this.button.classList.add("name-resolved");
+    this.button.setAttribute("data-resolution-source", resolved.source);
+  }
+
+  static renderButton(connected) {
+    const button = this.button;
+    if (!button) return;
+
+    if (!connected) {
+      this.resolveToken++;
+      button.innerHTML = `<span class="dk-connect-label">Connect</span>`;
+      button.classList.remove("connected", "name-resolved");
+      button.removeAttribute("data-address");
+      button.removeAttribute("data-resolution-source");
+      return;
+    }
+
+    const address = this.wallet.getAddress();
+    const key = address.toLowerCase();
+    button.classList.add("connected");
+    button.setAttribute("data-address", address);
+
+    if (this.cache.has(key)) {
+      const cached = this.cache.get(key);
+      if (cached?.name) {
+        this.paintName(cached);
+      } else {
+        button.innerHTML = `<span class="dk-connect-label">${shortenAddress(address)}</span>`;
+        button.classList.remove("name-resolved");
+        button.removeAttribute("data-resolution-source");
+      }
+      return;
+    }
+
+    button.innerHTML = `<span class="dk-connect-label">${shortenAddress(address)}</span>`;
+    button.classList.remove("name-resolved");
+    button.removeAttribute("data-resolution-source");
+
+    const token = ++this.resolveToken;
+    this.wallet
+      .resolveName(address)
+      .then((resolved) => {
+        this.cache.set(key, resolved || { name: null });
+        if (
+          !resolved?.name ||
+          token !== this.resolveToken ||
+          this.wallet.getAddress() !== address
+        )
+          return;
+        this.paintName(resolved);
+      })
+      .catch(() => {});
+  }
+
+  static renderWallets(connected) {
+    if (!this.list) return;
+    this.list.innerHTML = "";
+    const providers = this.wallet.getProviders();
+    providers.forEach((provider) => {
+      const active =
+        connected && provider.info.name === this.wallet.getLastWallet();
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "dk-menu-item dk-wallet-item";
+      button.classList.toggle("active", active);
+      button.setAttribute("role", "menuitem");
+      button.innerHTML = `<img src="${provider.info.icon}" alt="" /><span class="dk-item-label">${escapeHtml(provider.info.name)}</span><span class="dk-dot" aria-hidden="true"></span>`;
+      button.querySelector(".dk-dot").style.display = active
+        ? "block"
+        : "none";
+      button.addEventListener("click", async () => {
+        this.dropdown?.close();
+        if (active) return;
+        try {
+          await this.wallet.connectWallet(provider.info.name);
+        } catch (error) {
+          notify(error?.message || "Failed to connect wallet.", "error");
+        }
+      });
+      this.list.appendChild(button);
+    });
+    if (this.getWallet)
+      this.getWallet.style.display = providers.length ? "none" : "block";
+  }
+
+  static renderActions(connected) {
+    const address = this.wallet.getAddress();
+    if (this.copyBtn) {
+      this.copyBtn.hidden = !connected;
+      if (connected && address) {
+        this.copyBtn.setAttribute("data-copy", address);
+        if (typeof Copy !== "undefined" && Copy?.enhance)
+          Copy.enhance(this.copyBtn);
+      } else {
+        this.copyBtn.removeAttribute("data-copy");
+      }
+    }
+    if (this.disconnectBtn) this.disconnectBtn.hidden = !connected;
+  }
+}
+
+/* ============================================================
+   COMPONENT: Settings
+   Remove this block, the settings dropdown HTML, its CSS section
+   and `Settings.mount()` in app.js
+   ============================================================ */
+
+   export class Settings {
+     static button = null;
+     static menu = null;
+     static inputs = null;
+     static dropdown = null;
+     static toggle = null;
+     static panel = null;
+
+     static mount() {
+       this.button = document.querySelector("#settings-btn");
+       this.menu = document.querySelector("#settings-menu");
+       this.inputs = document.querySelector("#rpc-inputs");
+       this.toggle = document.querySelector("#rpc-toggle");
+       this.panel = document.querySelector("#rpc-panel");
+       if (!this.button || !this.menu) return this;
+       this.dropdown = new Dropdown(this.button, this.menu);
+       this.renderRpcInputs();
+       this.toggle?.addEventListener("click", () =>
+         this.setRpcOpen(!this.panel.classList.contains("open")),
+       );
+       this.setRpcOpen(false);
+       document
+         .getElementById("save-rpc-btn")
+         ?.addEventListener("click", () => this.saveRpc());
+       return this;
+     }
+
+     static setRpcOpen(open) {
+       if (!this.panel || !this.toggle) return;
+       this.panel.classList.toggle("open", open);
+       this.panel.inert = !open;
+       this.toggle.setAttribute("aria-expanded", String(open));
+     }
+
+     static renderRpcInputs() {
+       if (!this.inputs) return;
+       this.inputs.innerHTML = "";
+       getRpcConfigurableNetworks().forEach(([network, config]) => {
+         const field = document.createElement("div");
+         const label = document.createElement("label");
+         label.textContent = config.name;
+         label.htmlFor = `${network}-rpc`;
+         const input = Object.assign(document.createElement("input"), {
+           id: `${network}-rpc`,
+           type: "url",
+           placeholder: "Enter custom RPC URL",
+           value: localStorage.getItem(`${network}-rpc`) || "",
+         });
+         field.append(label, input);
+         this.inputs.appendChild(field);
+       });
+     }
+
+     static saveRpc() {
+       getRpcConfigurableNetworks().forEach(([network]) => {
+         const input = document.getElementById(`${network}-rpc`);
+         if (!input) return;
+         input.value.trim()
+           ? localStorage.setItem(`${network}-rpc`, input.value.trim())
+           : localStorage.removeItem(`${network}-rpc`);
+       });
+       this.dropdown?.close();
+       this.setRpcOpen(false);
+       notify("RPC settings saved.", "success");
+     }
+   }
+
+/* ============================================================
+   CORE: ConnectWallet (headless)
+   No DOM here. UI components above subscribe to state changes.
+   ============================================================ */
+
 export class ConnectWallet {
   constructor(options = {}) {
     this.networkConfigs = options.networkConfigs || networkConfigs;
@@ -420,36 +805,34 @@ export class ConnectWallet {
     this.currentProvider = null;
     this.providerListeners = null;
     this.autoConnect = options.autoConnect !== false;
-    this.nameResolutionOrder = options.nameResolutionOrder || ["ens", "gns", "wns"];
+    this.nameResolutionOrder = options.nameResolutionOrder || [
+      "ens",
+      "gns",
+      "wns",
+    ];
     this.showUnsupportedNetworkNotification =
       options.showUnsupportedNetworkNotification !== false;
     this.unsupportedNetworkNotificationId = null;
+    this.address = null;
+    this.stateListeners = new Set();
 
     const networks = Object.values(this.networkConfigs);
     this.chainIdToName = Object.fromEntries(
-      networks.map((cfg) => [cfg.chainId, cfg.name]),
+      networks.map((config) => [config.chainId, config.name]),
     );
     this.allowedChains = networks
-      .filter((cfg) => cfg.showInUI)
-      .map((cfg) => cfg.chainId);
+      .filter((config) => config.showInUI)
+      .map((config) => config.chainId);
 
     onReady(() => this.init());
   }
 
   init() {
-    this.elements = {
-      connectBtn: document.querySelector("#connect-btn"),
-      connectModal: document.querySelector("#connect-modal"),
-      connectChainList: document.querySelector("#connect-chain-list"),
-      connectWalletList: document.querySelector("#connect-wallet-list"),
-      connectRpc: document.querySelector("#connect-rpc"),
-    };
     this.bindEvents();
-    this.setupUIEvents();
     this.requestProviders();
     this.initializing = true;
     this.restoreState();
-    this.render();
+    this.emitState();
     setTimeout(async () => {
       await this.verifyConnectionState({
         allowUiDisconnect: true,
@@ -457,6 +840,7 @@ export class ConnectWallet {
         retryDelayMs: 500,
       });
       this.initializing = false;
+      this.emitState();
     }, 300);
   }
 
@@ -465,8 +849,8 @@ export class ConnectWallet {
   }
 
   bindEvents() {
-    window.addEventListener("eip6963:announceProvider", (e) =>
-      this.handleProviderAnnounce(e),
+    window.addEventListener("eip6963:announceProvider", (event) =>
+      this.handleProviderAnnounce(event),
     );
     const onVisible = () =>
       setTimeout(
@@ -484,23 +868,18 @@ export class ConnectWallet {
     });
   }
 
-  setupUIEvents() {
-    this.elements.connectBtn?.addEventListener("click", (e) => {
-      if (!e.target.closest("[data-copy]")) {
-        e.stopPropagation();
-        this.toggleModal();
+  subscribe(listener) {
+    this.stateListeners.add(listener);
+    return () => this.stateListeners.delete(listener);
+  }
+
+  emitState() {
+    this.stateListeners.forEach((listener) => {
+      try {
+        listener(this);
+      } catch (error) {
+        console.error(error);
       }
-    });
-    this.elements.connectModal?.addEventListener("click", (e) =>
-      e.stopPropagation(),
-    );
-    document.addEventListener("click", () => this.hideModal());
-    this.elements.connectRpc?.addEventListener("click", (e) => {
-      const btn = e.currentTarget;
-      btn.dataset.spin = btn.dataset.spin === "true" ? "false" : "true";
-      populateRpcInputs();
-      toggleRpcModal(true);
-      this.hideModal();
     });
   }
 
@@ -517,7 +896,7 @@ export class ConnectWallet {
   handleProviderAnnounce({ detail }) {
     if (this.providers.some((p) => p.info.name === detail.info.name)) return;
     this.providers.push(detail);
-    this.render();
+    this.emitState();
     if (this.isConnected() && this.getLastWallet() === detail.info.name)
       this.syncConnectedProviderState(detail);
     else if (this.autoConnect && !this.isConnected())
@@ -529,13 +908,6 @@ export class ConnectWallet {
       provider.request({ method }),
       provider.request({ method: "eth_chainId" }),
     ]);
-  }
-
-  createButton(config, onClick) {
-    const btn = document.createElement("button");
-    btn.innerHTML = `<img src="${config.icon}">${config.name}<span class="connect-dot" style="display: none"></span>`;
-    btn.onclick = onClick;
-    return btn;
   }
 
   async connectWallet(name) {
@@ -609,7 +981,7 @@ export class ConnectWallet {
         providerName: providerDetail.info.name,
       });
     } catch {
-      this.render();
+      this.emitState();
     }
   }
 
@@ -622,14 +994,11 @@ export class ConnectWallet {
     this.removeProviderEvents();
     this.currentProvider = null;
     this.providerListeners = null;
+    this.address = null;
     CONNECT_STATE_KEYS.forEach((key) => this.storage.removeItem(key));
+    this.hideUnsupportedNetworkNotice();
     this.onDisconnectCallback?.();
-    if (this.elements.connectBtn) {
-      this.elements.connectBtn.innerHTML = "Connect";
-      this.elements.connectBtn.classList.remove("connected", "name-resolved");
-    }
-    this.elements.connectModal?.classList.remove("show");
-    this.render();
+    this.emitState();
   }
 
   async verifyConnectionState({
@@ -648,16 +1017,15 @@ export class ConnectWallet {
             accounts,
             chainId,
             providerName: this.getLastWallet(),
-            render: false,
           });
           if (hasChainChanged(prevChainId, chainId))
             this.emitChainChange(chainId);
-          this.render();
+          this.emitState();
           return;
         }
       } catch {}
       if (attempt < retries) {
-        await new Promise((r) => setTimeout(r, retryDelayMs));
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         continue;
       }
       if (allowUiDisconnect) this.applyDisconnectedState();
@@ -669,7 +1037,7 @@ export class ConnectWallet {
     this.updateNetworkStatus(chainId);
     this.syncUnsupportedNetworkNotice(chainId);
     if (hasChainChanged(prev, chainId)) this.emitChainChange(chainId);
-    this.render();
+    this.emitState();
   }
 
   emitChainChange(chainId) {
@@ -683,31 +1051,21 @@ export class ConnectWallet {
     });
   }
 
-  applyConnectedState({ accounts, chainId, providerName, render = true }) {
+  applyConnectedState({ accounts, chainId, providerName }) {
     const account = Array.isArray(accounts) ? accounts[0] : null;
     if (!account) return;
+    this.address = account;
     this.setStorageState(STORAGE_KEYS.IS_CONNECTED, "true");
     this.setStorageState(STORAGE_KEYS.LAST_WALLET, providerName);
-
-    const currentAddress =
-      this.elements.connectBtn?.getAttribute("data-address");
-    if (
-      !currentAddress ||
-      currentAddress.toLowerCase() !== account.toLowerCase()
-    ) {
-      this.updateAddress(account);
-    }
-
     this.updateNetworkStatus(chainId);
     this.syncUnsupportedNetworkNotice(chainId);
-    if (render) this.render();
+    this.emitState();
   }
 
   showUnsupportedNetworkNotice() {
     if (!this.showUnsupportedNetworkNotification || this.initializing) return;
-    if (this.unsupportedNetworkNotificationId)
-      Notification.hide(this.unsupportedNetworkNotificationId);
-    this.unsupportedNetworkNotificationId = Notification.show(
+    this.hideUnsupportedNetworkNotice();
+    this.unsupportedNetworkNotificationId = notify(
       "Please switch to a supported network.",
       "error",
       { duration: 0 },
@@ -716,26 +1074,25 @@ export class ConnectWallet {
 
   hideUnsupportedNetworkNotice() {
     if (!this.unsupportedNetworkNotificationId) return;
-    Notification.hide(this.unsupportedNetworkNotificationId);
+    if (
+      typeof Notification !== "undefined" &&
+      typeof Notification.hide === "function"
+    )
+      Notification.hide(this.unsupportedNetworkNotificationId);
     this.unsupportedNetworkNotificationId = null;
   }
 
   syncUnsupportedNetworkNotice(chainId) {
-    const n = normalizeChainId(chainId);
-    if (!Number.isFinite(n)) return;
-    this.isAllowed(n)
+    const normalized = normalizeChainId(chainId);
+    if (!Number.isFinite(normalized)) return;
+    this.isAllowed(normalized)
       ? this.hideUnsupportedNetworkNotice()
       : this.showUnsupportedNetworkNotice();
   }
 
   updateAddress(address) {
-    if (!this.elements.connectBtn) return;
-    const short = shortenAddress(address);
-    this.elements.connectBtn.innerHTML = `<span class="connect-address-text">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span>`;
-    this.elements.connectBtn.classList.add("connected");
-    this.elements.connectBtn.classList.remove("name-resolved");
-    this.elements.connectBtn.setAttribute("data-address", address);
-    this.resolveName(address);
+    this.address = address;
+    this.emitState();
   }
 
   async resolveWNS(address) {
@@ -794,29 +1151,25 @@ export class ConnectWallet {
   }
 
   async resolveName(address) {
-    if (!this.elements.connectBtn) return;
+    if (!address) return null;
     try {
-      const resolved = await this.resolveOrdered(address);
-      if (!resolved?.name) return;
-      const short = shortenAddress(address);
-      this.elements.connectBtn.innerHTML = `<div class="name-details"><div class="resolved-name">${resolved.name}</div><div class="named-address-row"><span class="named-address">${short}</span><span class="connect-copy-btn" data-copy="${address}"></span></div></div>${resolved.avatar ? `<img src="${resolved.avatar}" style="border-radius: 50%">` : ""}`;
-      this.elements.connectBtn.classList.add("name-resolved");
-      this.elements.connectBtn.setAttribute("data-address", address);
-      this.elements.connectBtn.setAttribute("data-resolution-source", resolved.source);
-    } catch {}
+      return await this.resolveOrdered(address);
+    } catch {
+      return null;
+    }
   }
 
   async switchNetwork(networkConfig) {
     const provider = this.getConnectedProvider();
-    if (!provider) return;
+    if (!provider) return false;
     try {
       await provider.request({
         method: "wallet_switchEthereumChain",
         params: [{ chainId: chainIdToHex(networkConfig.chainId) }],
       });
-      this.hideModal();
       this.updateNetworkStatus(networkConfig.chainId);
-      this.render();
+      this.emitState();
+      return true;
     } catch (error) {
       console.error("Network switch failed:", error);
       throw error;
@@ -824,9 +1177,9 @@ export class ConnectWallet {
   }
 
   updateNetworkStatus(chainId) {
-    const n = normalizeChainId(chainId);
-    if (Number.isFinite(n))
-      this.setStorageState(STORAGE_KEYS.CHAIN_ID, chainIdToHex(n));
+    const normalized = normalizeChainId(chainId);
+    if (Number.isFinite(normalized))
+      this.setStorageState(STORAGE_KEYS.CHAIN_ID, chainIdToHex(normalized));
   }
 
   async disconnect() {
@@ -839,61 +1192,6 @@ export class ConnectWallet {
       console.error("Disconnect failed:", error);
     }
     this.applyDisconnectedState();
-  }
-
-  toggleModal() {
-    this.elements.connectModal?.classList.toggle("show");
-  }
-  hideModal() {
-    this.elements.connectModal?.classList.remove("show");
-  }
-
-  render() {
-    this.renderWalletProviders();
-    this.renderChainList();
-    const getWalletEl = document.querySelector("#connect-get-wallet");
-    if (getWalletEl)
-      getWalletEl.style.display = this.providers.length ? "none" : "block";
-  }
-
-  renderWalletProviders() {
-    if (!this.elements.connectWalletList) return;
-    this.elements.connectWalletList.innerHTML = "";
-    this.providers.forEach((provider) => {
-      const btn = this.createButton(provider.info, () => {
-        this.hideModal();
-        this.connectWallet(provider.info.name);
-      });
-      btn.querySelector(".connect-dot").style.display =
-        provider.info.name === this.getLastWallet() ? "inline-block" : "none";
-      this.elements.connectWalletList.appendChild(btn);
-    });
-  }
-
-  renderChainList() {
-    if (!this.elements.connectChainList) return;
-    this.elements.connectChainList.innerHTML = "";
-    const currentChainId = normalizeChainId(this.getCurrentChainId());
-    const isConnected = this.isConnected();
-    const networks = getVisibleNetworks();
-    const single = networks.length === 1;
-    this.elements.connectChainList.classList.toggle("single-network", single);
-    networks.forEach(([networkName, cfg]) => {
-      const btn = document.createElement("button");
-      btn.id = `connect-${networkName}`;
-      btn.title = cfg.name;
-      btn.classList.toggle("chain-single", single);
-      btn.innerHTML = single
-        ? `<img src="${cfg.icon}" alt="${cfg.name}"><span class="connect-name">${cfg.name}</span>`
-        : `<img src="${cfg.icon}" alt="${cfg.name}">`;
-      btn.onclick = () => this.switchNetwork(cfg);
-      const dot = document.createElement("span");
-      dot.className = `connect-dot${single ? "" : "-icon"}`;
-      dot.style.display =
-        isConnected && cfg.chainId === currentChainId ? "inline-block" : "none";
-      btn.appendChild(dot);
-      this.elements.connectChainList.appendChild(btn);
-    });
   }
 
   restoreState() {
@@ -915,6 +1213,17 @@ export class ConnectWallet {
   }
   getLastWallet() {
     return this.storage.getItem(STORAGE_KEYS.LAST_WALLET);
+  }
+  getAddress() {
+    return this.address;
+  }
+  getProviders() {
+    return this.providers;
+  }
+  getVisibleNetworks() {
+    return Object.entries(this.networkConfigs).filter(
+      ([, config]) => config.showInUI,
+    );
   }
   getProviderDetail(name) {
     return name
@@ -952,8 +1261,8 @@ export class ConnectWallet {
     return this.getConnectedProvider();
   }
   getEthersProvider() {
-    const p = this.getConnectedProvider();
-    return p ? new ethers.BrowserProvider(p) : null;
+    const provider = this.getConnectedProvider();
+    return provider ? new ethers.BrowserProvider(provider) : null;
   }
   getShortAddr(address) {
     return address ? shortenAddress(address) : "";
@@ -978,12 +1287,13 @@ export class ConnectWallet {
 
   setNameResolutionOrder(order) {
     if (!Array.isArray(order) || order.length === 0) {
-      console.warn("Invalid name resolution order. Pass an array like ['ens', 'gns', 'wns']");
+      console.warn(
+        "Invalid name resolution order. Pass an array like ['ens', 'gns', 'wns']",
+      );
       return;
     }
     this.nameResolutionOrder = order;
-    if (this.isConnected())
-      this.getAccount().then((addr) => addr && this.resolveName(addr));
+    if (this.isConnected()) this.emitState();
   }
 
   getNameResolutionOrder() {
