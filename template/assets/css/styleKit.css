@@ -153,7 +153,7 @@ input {
 }
 
 .dk-group::before {
-  display: none; /* only drawn on mobile, see media query */
+  display: none;
 }
 
 .dk-dropdown {
@@ -268,7 +268,6 @@ input {
   pointer-events: auto;
 }
 
-/* Shared row style: menu items, accordion header, "get wallet" link */
 .dk-menu-item,
 .dk-accordion-btn,
 .dk-get-wallet a {
@@ -370,7 +369,6 @@ input {
   gap: 2px;
 }
 
-/* Status dot: only visible on the active chain / wallet */
 .dk-dot {
   width: var(--dk-icon-xs);
   height: var(--dk-icon-xs);
@@ -636,7 +634,6 @@ input {
   flex-shrink: 0;
 }
 
-/* The "×" is drawn with two rotated bars */
 .notif-close::before,
 .notif-close::after {
   content: "";
@@ -679,8 +676,6 @@ input {
   from { transform: scaleX(1); }
   to   { transform: scaleX(0); }
 }
-
-/* Transaction notifications */
 
 .tx-icon {
   display: flex;
