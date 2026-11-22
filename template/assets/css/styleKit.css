@@ -472,19 +472,31 @@ input {
   gap: var(--dk-gap-lg);
 }
 
-#rpc-inputs div {
+#rpc-inputs {
+  display: grid;
+  gap: var(--dk-gap-lg);
+}
+
+.dk-rpc-row {
   display: flex;
   flex-direction: column;
   gap: var(--dk-gap-xs);
 }
 
-#rpc-inputs label {
+.dk-rpc-row label {
   font-size: var(--dk-font-sm);
   color: color-mix(in srgb, var(--dk-color-txt) 45%, transparent);
 }
 
-#rpc-inputs input {
-  width: 100%;
+.dk-rpc-field {
+  display: flex;
+  align-items: stretch;
+  gap: var(--dk-gap-md);
+}
+
+.dk-rpc-field input {
+  flex: 1;
+  min-width: 0;
   padding: var(--dk-space-md);
   font-size: var(--dk-font-md);
   color: var(--dk-color-txt);
@@ -494,30 +506,39 @@ input {
   outline: none;
 }
 
-#rpc-inputs input::placeholder {
+.dk-rpc-field input::placeholder {
   color: color-mix(in srgb, var(--dk-color-txt) 45%, transparent);
   opacity: 1;
 }
 
-#rpc-inputs input:focus {
+.dk-rpc-field input:focus {
   border-color: color-mix(in srgb, var(--dk-color-txt) 25%, transparent);
 }
 
-.dk-save-btn {
-  width: 100%;
-  padding: var(--dk-space-md);
-  font: inherit;
-  font-weight: var(--dk-weight-medium);
-  color: var(--dk-color-txt);
+.dk-rpc-save {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 44px;
+  padding: 0;
+  color: color-mix(in srgb, var(--dk-color-txt) 45%, transparent);
+  opacity: 1;
   background-color: var(--dk-connect-color-btn);
   border: none;
   border-radius: var(--dk-radius-lg);
   cursor: pointer;
-  transition: background-color var(--dk-transition);
+  transition: all var(--dk-transition);
 }
 
-.dk-save-btn:hover {
+.dk-rpc-save:hover {
   background-color: var(--dk-connect-color-hvr);
+  color: var(--dk-color-txt);
+}
+
+.dk-rpc-save svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* ============================================================
