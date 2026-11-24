@@ -259,7 +259,8 @@ input {
 }
 
 .dk-settings-menu {
-  min-width: 260px;
+  width: 260px;
+  min-width: 0;
 }
 
 .dk-menu.show {
@@ -456,6 +457,7 @@ input {
 }
 
 .dk-accordion-inner {
+  min-width: 0;
   min-height: 0;
   overflow: hidden;
   display: flex;
@@ -469,11 +471,7 @@ input {
 
 #rpc-inputs {
   display: grid;
-  gap: var(--dk-gap-lg);
-}
-
-#rpc-inputs {
-  display: grid;
+  min-width: 0;
   gap: var(--dk-gap-lg);
 }
 
@@ -496,6 +494,7 @@ input {
 
 .dk-rpc-field input {
   flex: 1;
+  width: 100%;
   min-width: 0;
   padding: var(--dk-space-md);
   font-size: var(--dk-font-md);

@@ -718,7 +718,7 @@ export class Settings {
         const input = create("input", {
           id: `${name}-rpc`,
           type: "url",
-          placeholder: "Enter custom RPC URL",
+          placeholder: "Custom RPC URL",
           value: localStorage.getItem(`${name}-rpc`) || "",
         });
         input.addEventListener("keydown", (e) => {
